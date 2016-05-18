@@ -1,6 +1,7 @@
 package net.zyuiop.loupgarou.server.game;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import net.zyuiop.loupgarou.game.GamePhase;
 import net.zyuiop.loupgarou.game.GameState;
 import net.zyuiop.loupgarou.game.Role;
@@ -14,7 +15,10 @@ import net.zyuiop.loupgarou.protocol.packets.clientbound.SetStatePacket;
 import net.zyuiop.loupgarou.server.LGServer;
 import net.zyuiop.loupgarou.server.game.phases.Phases;
 import net.zyuiop.loupgarou.server.game.phases.PreparationPhase;
+import net.zyuiop.loupgarou.server.game.tasks.HunterTask;
+import net.zyuiop.loupgarou.server.tasks.DelayedTask;
 import net.zyuiop.loupgarou.server.tasks.TaskChainer;
+import net.zyuiop.loupgarou.server.tasks.TaskManager;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,8 +35,9 @@ public class Game {
 	private final GameConfig config;
 
 	// Running variables
-	private GamePlayer nextVictim = null;
-	private GamePlayer mayor      = null;
+	private GamePlayer      nextVictim   = null;
+	private Set<GamePlayer> otherVictims = Sets.newHashSet();
+	private GamePlayer      mayor        = null;
 
 	protected Game(int gameId, GameConfig config) {
 		this.gameId = gameId;
@@ -140,8 +145,6 @@ public class Game {
 
 		// Start game
 		setState(GameState.STARTED);
-		setPhase(GamePhase.PREPARATION);
-
 		runPreparation(availableRoles);
 	}
 
@@ -174,15 +177,30 @@ public class Game {
 		return false;
 	}
 
-	private boolean hasToEnd() {
+	public boolean hasToEnd() {
+		if (state == GameState.FINISHED)
+			return true;
+
 		if (!checkWin())
 			return false;
+
+		TaskManager.submit(new DelayedTask(30) {
+			@Override
+			public void run() {
+				GamesManager.removeGame(Game.this);
+			}
+		});
 		setState(GameState.FINISHED);
 		return true;
 	}
 
 	private void runPreNight() {
-		runNight();
+		if (hasToEnd())
+			return;
+
+		net.zyuiop.loupgarou.server.game.phases.GamePhase phase = Phases.getPhase(GamePhase.PRE_NIGHT);
+		phase.setRunAfter(this::runNight);
+		phase.run(this);
 	}
 
 	private void runNight() {
@@ -195,7 +213,12 @@ public class Game {
 	}
 
 	private void runEndNight() {
-		runDay();
+		if (hasToEnd())
+			return;
+
+		net.zyuiop.loupgarou.server.game.phases.GamePhase phase = Phases.getPhase(GamePhase.END_NIGHT);
+		phase.setRunAfter(this::runDay);
+		phase.run(this);
 	}
 
 	private void runDay() {
@@ -234,13 +257,40 @@ public class Game {
 	}
 
 	public TaskChainer stumpPlayer(GamePlayer player, TaskChainer chainer) {
-		// TODO : some stuff, mayor reelection, hunter...
+		// TODO : some stuff, mayor reelection
 		players.remove(player);
 		spectators.add(player);
 
-		// TODO : remove (test)
-		chainer.autoComplete(() -> LGServer.getLogger().info("Player " + player.getName() + " eliminated."));
+		if (player.getRole() == Role.HUNTER) {
+			chainer.justAfter(new HunterTask(this, chainer, player));
+		}
+
+		if (player.getLover() != null && players.contains(player.getLover())) {
+			chainer.autoCompleteJustAfter(() -> {
+				sendToAll(new MessagePacket(MessageType.GAME, player.getLover().getName() + " (" + player.getLover().getRole() + ") était amoureux de " + player.getName() + " et se suicide !"));
+				player.getLover().setLover(null);
+				stumpPlayer(player.getLover(), chainer);
+			});
+		}
 
 		return chainer;
+	}
+
+	public void addVictim(GamePlayer player) {
+		otherVictims.add(player);
+	}
+
+	public List<GamePlayer> getEveryone() {
+		List<GamePlayer> list = Lists.newArrayList(players);
+		list.addAll(spectators);
+		return list;
+	}
+
+	public Set<GamePlayer> getOtherVictims() {
+		return otherVictims;
+	}
+
+	public int getGameId() {
+		return gameId;
 	}
 }

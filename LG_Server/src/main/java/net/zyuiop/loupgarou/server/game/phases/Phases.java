@@ -11,7 +11,9 @@ public class Phases {
 	private static Map<net.zyuiop.loupgarou.game.GamePhase, Class<? extends GamePhase>> phases = new HashMap<>();
 
 	static {
+		register(net.zyuiop.loupgarou.game.GamePhase.PRE_NIGHT, PreNightPhaase.class);
 		register(net.zyuiop.loupgarou.game.GamePhase.NIGHT, NightPhase.class);
+		register(net.zyuiop.loupgarou.game.GamePhase.END_NIGHT, EndNightPhase.class);
 		register(net.zyuiop.loupgarou.game.GamePhase.DAY, DayPhase.class);
 		register(net.zyuiop.loupgarou.game.GamePhase.PREPARATION, PreparationPhase.class);
 	}

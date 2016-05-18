@@ -17,6 +17,8 @@ public class Characters {
 		characters.put(Role.WOLF, WolfCharacter.class);
 		characters.put(Role.THIEF, ThiefCharacter.class);
 		characters.put(Role.CUPIDON, CupidonCharacter.class);
+		characters.put(Role.WITCH, WitchCharacter.class);
+		characters.put(Role.MEDIUM, MediumCharacter.class);
 	}
 
 	public static Character getCharacter(Role role, Game game) {

@@ -9,7 +9,7 @@ import java.util.Queue;
  * @author zyuiop
  */
 public class TaskChainer extends Task {
-	private Queue<Task> queue = new ArrayDeque<>();
+	private ArrayDeque<Task> queue = new ArrayDeque<>();
 	private String name;
 
 	public TaskChainer() {
@@ -31,17 +31,26 @@ public class TaskChainer extends Task {
 		return this;
 	}
 
-	public TaskChainer next(Runnable runnable) {
-		return next(new Task() {
-			@Override
-			public void run() {
-				runnable.run();
-			}
-		});
+	public TaskChainer justAfter(Task task) {
+		LGServer.getLogger().info("TaskChainer " + getName() + " : scheduling " + task + " for immediate run");
+
+		task.setRunAfter(this::runNext);
+		queue.addFirst(task);
+		return this;
 	}
 
 	public TaskChainer autoComplete(Runnable runnable) {
 		return next(new Task() {
+			@Override
+			public void run() {
+				runnable.run();
+				complete();
+			}
+		});
+	}
+
+	public TaskChainer autoCompleteJustAfter(Runnable runnable) {
+		return justAfter(new Task() {
 			@Override
 			public void run() {
 				runnable.run();

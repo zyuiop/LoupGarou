@@ -6,6 +6,8 @@ import net.zyuiop.loupgarou.protocol.network.MessageType;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.MessagePacket;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.SetRolePacket;
 import net.zyuiop.loupgarou.server.LGServer;
+import net.zyuiop.loupgarou.server.game.roledata.RoleData;
+import net.zyuiop.loupgarou.server.game.roledata.RoleDatas;
 import net.zyuiop.loupgarou.server.network.ConnectedClient;
 
 import java.util.HashMap;
@@ -28,10 +30,11 @@ public class GamePlayer {
 	}
 
 	private       ConnectedClient client;
-	private       Role            role;
+	private       RoleData        role;
 	private final String          name;
 	private GamePlayer lover = null;
 	private Game game;
+	private Map<String, Object> attributes = new HashMap<>();
 
 	private GamePlayer(String name) {
 		this.name = name;
@@ -46,11 +49,17 @@ public class GamePlayer {
 	}
 
 	public Role getRole() {
-		return role;
+		return role == null ? null : role.getRole();
+	}
+
+	public <T extends RoleData> T getRoleData(Class<T> tClass) {
+		if (!tClass.isInstance(role))
+			return null;
+		return (T) role;
 	}
 
 	public void setRole(Role role) {
-		this.role = role;
+		this.role = RoleDatas.create(role);
 		sendPacket(new MessagePacket(MessageType.GAME, "Vous jouez désormais " + role.getName() + " ! Votre objectif est : " + role.getObjective() + ". Vous disposez du pouvoir suivant : " + role.getPower()));
 		sendPacket(new SetRolePacket(role));
 		LGServer.getLogger().info("Attributed role " + role +" to " + getName());
@@ -66,6 +75,15 @@ public class GamePlayer {
 
 	public void setGame(Game game) {
 		this.game = game;
+		attributes.clear();
+	}
+
+	public void setAttribute(String name, Object value) {
+		attributes.put(name, value);
+	}
+
+	public Object getAttribute(String name) {
+		return attributes.get(name);
 	}
 
 	public void sendPacket(Packet packet) {
@@ -84,6 +102,7 @@ public class GamePlayer {
 
 	public void setLover(GamePlayer lover) {
 		this.lover = lover;
-		sendPacket(new MessagePacket(MessageType.GAME, "Cupidon vous a fait amoureux de " + lover.getName() + " !"));
+		if (lover != null)
+			sendPacket(new MessagePacket(MessageType.GAME, "Cupidon vous a fait amoureux de " + lover.getName() + " !"));
 	}
 }

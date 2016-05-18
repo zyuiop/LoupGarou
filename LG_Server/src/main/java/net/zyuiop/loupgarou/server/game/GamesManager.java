@@ -67,4 +67,13 @@ public class GamesManager {
 			player.sendPacket(new GameListPacket(getInfos()));
 		}
 	}
+
+	public static void removeGame(Game game) {
+		// TODO meilleure sortie de jeu (envoi de packet)
+		game.getEveryone().stream().filter(player -> player.getGame() == game).forEach(player -> {
+			player.setGame(null);
+		});
+
+		games.remove(game.getGameId());
+	}
 }
