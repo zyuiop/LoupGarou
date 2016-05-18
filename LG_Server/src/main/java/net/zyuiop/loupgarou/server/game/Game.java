@@ -11,6 +11,10 @@ import net.zyuiop.loupgarou.protocol.packets.clientbound.GameStatePacket;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.MessagePacket;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.SetPhasePacket;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.SetStatePacket;
+import net.zyuiop.loupgarou.server.LGServer;
+import net.zyuiop.loupgarou.server.game.phases.Phases;
+import net.zyuiop.loupgarou.server.game.phases.PreparationPhase;
+import net.zyuiop.loupgarou.server.tasks.TaskChainer;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,12 +23,16 @@ import java.util.stream.Collectors;
  * @author zyuiop
  */
 public class Game {
-	private final int              gameId;
-	private       GameState        state      = GameState.WAITING;
-	private       GamePhase        phase      = null;
-	private       List<GamePlayer> players    = new ArrayList<>();
-	private       List<GamePlayer> spectators = new ArrayList<>();
+	private final int gameId;
+	private GameState        state      = GameState.WAITING;
+	private GamePhase        phase      = null;
+	private List<GamePlayer> players    = new ArrayList<>();
+	private List<GamePlayer> spectators = new ArrayList<>();
 	private final GameConfig config;
+
+	// Running variables
+	private GamePlayer nextVictim = null;
+	private GamePlayer mayor      = null;
 
 	protected Game(int gameId, GameConfig config) {
 		this.gameId = gameId;
@@ -66,15 +74,15 @@ public class Game {
 		player.getClient().sendPacket(new GameStatePacket(gameId, config.getName(), config.getHoster(), config.getCharacters(), getPlayerList()));
 	}
 
-	private void sendToPlayers(Packet packet) {
+	public void sendToPlayers(Packet packet) {
 		players.forEach(pl -> pl.getClient().sendPacket(packet));
 	}
 
-	private void sendToSpectators(Packet packet) {
+	public void sendToSpectators(Packet packet) {
 		spectators.forEach(pl -> pl.getClient().sendPacket(packet));
 	}
 
-	private void sendToAll(Packet packet) {
+	public void sendToAll(Packet packet) {
 		sendToPlayers(packet);
 		sendToSpectators(packet);
 	}
@@ -84,17 +92,21 @@ public class Game {
 		return lst.toArray(new String[lst.size()]);
 	}
 
-	private void sendToAll(Packet packet, Role role, Role... roles) {
+	public void sendToAll(Packet packet, Role role, Role... roles) {
 		getPlayers(role, roles).forEach(pl -> pl.getClient().sendPacket(packet));
 	}
 
-	private Collection<GamePlayer> getPlayers(Role role, Role... roles) {
+	public Collection<GamePlayer> getPlayers(Role role, Role... roles) {
 		List<Role> allRoles = Lists.newArrayList(roles);
 		allRoles.add(role);
 		return players.stream().filter(pl -> allRoles.contains(pl.getRole())).collect(Collectors.toList());
 	}
 
-	private Collection<GamePlayer> getPlayersExcepted(Role role, Role... roles) {
+	public List<GamePlayer> getPlayers() {
+		return players;
+	}
+
+	public Collection<GamePlayer> getPlayersExcepted(Role role, Role... roles) {
 		List<Role> allRoles = Lists.newArrayList(roles);
 		allRoles.add(role);
 		return players.stream().filter(player -> !allRoles.contains(player.getRole())).collect(Collectors.toList());
@@ -130,68 +142,28 @@ public class Game {
 		setState(GameState.STARTED);
 		setPhase(GamePhase.PREPARATION);
 
-		startThief(availableRoles);
+		runPreparation(availableRoles);
 	}
 
-	private void startThief(List<Role> remaining) {
-		Collection<GamePlayer> stealers = getPlayers(Role.THIEF);
-		if (stealers.size() > 0) {
-			String[] available = new String[2];
-			if (remaining.size() >= 2) {
-				available[0] = remaining.get(0).name();
-				available[1] = remaining.get(1).name();
-			} else if (remaining.size() == 1) {
-				available[0] = remaining.get(0).name();
-				available[1] = Role.VILLAGER.name();
-			} else {
-				available[0] = available[1] = Role.VILLAGER.name();
-			}
-
-			GamePlayer thief = stealers.iterator().next();
-			sendToAll(new MessagePacket(MessageType.GAME, "Le voleur doit désormais choisir son nouveau rôle..."));
-			new Vote(30, this, "Choisissez votre nouveau rôle", stealers, available) {
-				@Override
-				protected void handleResults(Map<GamePlayer, String> results) {
-					Map.Entry<GamePlayer, String> entry = results.entrySet().iterator().next();
-					if (entry == null) {
-						thief.sendPacket(new MessagePacket(MessageType.GAME, "Vous n'avez choisi aucune autre classe, vous restez donc voleur."));
-					} else {
-						Role role = Role.valueOf(entry.getValue());
-						thief.setRole(role);
-					}
-					startPrepareTurn();
-				}
-			};
+	public void runPreparation(List<Role> remaining) {
+		Role[] available = new Role[2];
+		if (remaining.size() >= 2) {
+			available[0] = remaining.get(0);
+			available[1] = remaining.get(1);
+		} else if (remaining.size() == 1) {
+			available[0] = remaining.get(0);
+			available[1] = Role.VILLAGER;
 		} else {
-			startPrepareTurn();
+			available[0] = available[1] = Role.VILLAGER;
 		}
+
+		PreparationPhase phase = (PreparationPhase) Phases.getPhase(GamePhase.PREPARATION);
+		phase.setRoles(available);
+		phase.setRunAfter(this::runPreNight);
+		phase.run(this);
 	}
 
-	private void startPrepareTurn() {
-		Collection<GamePlayer> cupidon = getPlayers(Role.CUPIDON);
-		if (cupidon.size() > 0) {
-			Collection<String> others = players.stream().filter(player -> player.getRole() != Role.CUPIDON).map(GamePlayer::getName).collect(Collectors.toList());
-			String[] choices = others.toArray(new String[others.size()]);
-
-			sendToAll(new MessagePacket(MessageType.GAME, "Cupdion désigne les deux amoureux..."));
-
-			CupidonVote first = new CupidonVote(60, this, "Premier amoureux", cupidon, choices);
-			CupidonVote second = new CupidonVote(60, this, "Second amoureux", cupidon, choices);
-
-			first.setOtherVote(second);
-			first.setRunAtEnd(this::finishPreparation);
-			second.setOtherVote(first);
-			second.setRunAtEnd(this::finishPreparation);
-		} else {
-			finishPreparation();
-		}
-	}
-
-	private void finishPreparation() {
-		runNight();
-	}
-
-	private boolean checkWin() {
+	public boolean checkWin() {
 		if (getPlayers(Role.WOLF).size() == 0) {
 			sendToAll(new MessagePacket(MessageType.GAME, "Victoire du village !"));
 			return true;
@@ -209,98 +181,66 @@ public class Game {
 		return true;
 	}
 
+	private void runPreNight() {
+		runNight();
+	}
+
 	private void runNight() {
 		if (hasToEnd())
 			return;
 
-		setPhase(GamePhase.NIGHT);
-
-		new Vote(60, this, "Choisissez votre prochaine victime", getPlayers(Role.WOLF), getPlayersExcepted(Role.WOLF).stream().map(GamePlayer::getName).collect(Collectors.toList())) {
-			@Override
-			protected void handleResults(Map<GamePlayer, String> results) {
-				Map<String, Integer> voted = new HashMap<>();
-				for (String val : results.values()) {
-					if (!voted.containsKey(val))
-						voted.put(val, 0);
-					voted.put(val, voted.get(val) + 1);
-				}
-
-				int max = 0;
-				String val = null;
-				for (Map.Entry<String, Integer> vote : voted.entrySet()) {
-					if (vote.getValue() > max) {
-						max = vote.getValue();
-						val = vote.getKey();
-					}
-				}
-
-				// TODO : Handle witch
-				GamePlayer player = GamePlayer.getPlayer(val);
-				players.remove(player);
-				spectators.add(player);
-				player.sendMessage(MessageType.GAME, "Vous avez été croqué par les loups !");
-				sendToAll(new MessagePacket(MessageType.GAME, "Vous avez croqué " + player.getName() + " !"), Role.WOLF);
-
-				// TODO : other roles
-				runDay();
-			}
-		};
-	}
-
-	private void runPreNight() {
-
+		net.zyuiop.loupgarou.server.game.phases.GamePhase phase = Phases.getPhase(GamePhase.NIGHT);
+		phase.setRunAfter(this::runEndNight);
+		phase.run(this);
 	}
 
 	private void runEndNight() {
-
+		runDay();
 	}
 
 	private void runDay() {
 		if (hasToEnd())
 			return;
 
-		setPhase(GamePhase.DAY);
-
-		// TODO : custom time
-		new Vote(60, this, "Vote du village", players, players.stream().map(GamePlayer::getName).collect(Collectors.toList())) {
-			@Override
-			protected void handleResults(Map<GamePlayer, String> results) {
-				Map<String, Integer> voted = new HashMap<>();
-				for (String val : results.values()) {
-					if (!voted.containsKey(val))
-						voted.put(val, 0);
-					voted.put(val, voted.get(val) + 1);
-				}
-
-				int max = 0;
-				String val = null;
-				for (Map.Entry<String, Integer> vote : voted.entrySet()) {
-					if (vote.getValue() > max) {
-						max = vote.getValue();
-						val = vote.getKey();
-					}
-				}
-
-				// TODO : Handle equality
-				GamePlayer player = GamePlayer.getPlayer(val);
-				players.remove(player);
-				spectators.add(player);
-				player.sendMessage(MessageType.GAME, "Vous avez été tué par le village !");
-				sendToAll(new MessagePacket(MessageType.GAME, "Vous avez éliminé " + player.getName() + " ! Il était " + player.getRole()));
-
-				// TODO : prenight
-				runNight();
-			}
-		};
+		net.zyuiop.loupgarou.server.game.phases.GamePhase phase = Phases.getPhase(GamePhase.DAY);
+		phase.setRunAfter(this::runPreNight);
+		phase.run(this);
 	}
 
-	private void setState(GameState state) {
+	public void setState(GameState state) {
 		this.state = state;
 		sendToAll(new SetStatePacket(state));
 	}
 
-	private void setPhase(GamePhase phase) {
+	public void setPhase(GamePhase phase) {
 		this.phase = phase;
 		sendToAll(new SetPhasePacket(phase));
+	}
+
+	public GamePlayer getNextVictim() {
+		return nextVictim;
+	}
+
+	public void setNextVictim(GamePlayer nextVictim) {
+		this.nextVictim = nextVictim;
+	}
+
+	public GamePlayer getMayor() {
+		return mayor;
+	}
+
+	public void setMayor(GamePlayer mayor) {
+		this.mayor = mayor;
+	}
+
+	public TaskChainer stumpPlayer(GamePlayer player, TaskChainer chainer) {
+		// TODO : some stuff, mayor reelection, hunter...
+		players.remove(player);
+		spectators.add(player);
+
+		// TODO : remove (test)
+		chainer.autoComplete(() -> LGServer.getLogger().info("Player " + player.getName() + " eliminated."));
+
+		return chainer;
 	}
 }

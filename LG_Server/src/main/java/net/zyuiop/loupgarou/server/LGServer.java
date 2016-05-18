@@ -34,15 +34,8 @@ public class LGServer {
 	private static LGServer instance;
 	private static final Logger logger = LogManager.getRootLogger();
 	private final int port;
-	private ListeningExecutorService executor = setupWorkers();
 	private AuthenticationService authenticationService;
 
-	private ListeningExecutorService setupWorkers() {
-		int processor = Runtime.getRuntime().availableProcessors();
-		ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("Scheduler - #%d").build();
-		ExecutorService service = Executors.newFixedThreadPool(processor, factory);
-		return MoreExecutors.listeningDecorator(service);
-	}
 
 	LGServer() throws NoSuchAlgorithmException {
 		instance = this;
@@ -95,10 +88,6 @@ public class LGServer {
 
 	public static LGServer getInstance() {
 		return instance;
-	}
-
-	public ListeningExecutorService getExecutor() {
-		return executor;
 	}
 
 	public AuthenticationService getAuthenticationService() {

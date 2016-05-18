@@ -1,7 +1,9 @@
-package net.zyuiop.loupgarou.server.game;
+package net.zyuiop.loupgarou.server.game.votes;
 
 import net.zyuiop.loupgarou.protocol.network.MessageType;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.MessagePacket;
+import net.zyuiop.loupgarou.server.game.Game;
+import net.zyuiop.loupgarou.server.game.GamePlayer;
 
 import java.util.Collection;
 import java.util.Map;
@@ -12,10 +14,9 @@ import java.util.Map;
 public class CupidonVote extends Vote {
 	private CupidonVote otherVote = null;
 	private String finallySelected = null;
-	private Runnable runAtEnd = null;
 
-	public CupidonVote(int time, Game game, String name, Collection<GamePlayer> players, String[] availableChoices) {
-		super(time, game, name, players, availableChoices);
+	public CupidonVote(int time, String name, Collection<GamePlayer> players, String[] availableChoices) {
+		super(time, name, players, availableChoices);
 	}
 
 	public CupidonVote getOtherVote() {
@@ -24,14 +25,6 @@ public class CupidonVote extends Vote {
 
 	public void setOtherVote(CupidonVote otherVote) {
 		this.otherVote = otherVote;
-	}
-
-	public Runnable getRunAtEnd() {
-		return runAtEnd;
-	}
-
-	public void setRunAtEnd(Runnable runAtEnd) {
-		this.runAtEnd = runAtEnd;
 	}
 
 	@Override
@@ -45,7 +38,6 @@ public class CupidonVote extends Vote {
 
 		if (otherVote != null && otherVote.finallySelected != null) {
 			if (finallySelected.length() == 0 || otherVote.finallySelected.length() == 0) {
-				runAtEnd.run();
 				return;
 			}
 
@@ -57,8 +49,6 @@ public class CupidonVote extends Vote {
 			second.setLover(first);
 
 			results.keySet().iterator().next().sendPacket(new MessagePacket(MessageType.GAME, first.getName() + " et " + second.getName() + " sont désormais amoureux !"));
-
-			runAtEnd.run();
 		}
 	}
 

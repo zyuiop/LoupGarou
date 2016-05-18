@@ -17,12 +17,14 @@ import net.zyuiop.loupgarou.protocol.packets.serverbound.CreateGamePacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.JoinGamePacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.LoginPacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.VotePacket;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -42,6 +44,25 @@ public class BasicClient {
 			service.generateKeyPair();
 		}
 
+		String ip;
+		String name;
+
+		Scanner scanner = new Scanner(System.in);
+
+		if (args.length > 0)
+			ip = args[0];
+		else {
+			System.out.print("IP > ");
+			ip = scanner.next();
+		}
+
+		if (args.length > 1)
+			name = args[1];
+		else {
+			System.out.print("Name > ");
+			name = scanner.next();
+		}
+
 		try {
 			Bootstrap b = new Bootstrap(); // (1)
 			b.group(workerGroup); // (2)
@@ -55,12 +76,6 @@ public class BasicClient {
 			});
 
 			// Start the client
-			Scanner scanner = new Scanner(System.in);
-			System.out.print("IP > ");
-			String ip = scanner.next();
-
-			System.out.print("Name > ");
-			String name = scanner.next();
 
 			ChannelFuture f = b.connect(ip, port).sync();
 			logger.info("Connected to " + ip + ".");
@@ -129,7 +144,7 @@ public class BasicClient {
 					f.channel().writeAndFlush(new CreateGamePacket(chanName, players, roles.toArray(new Role[roles.size()]))).sync();
 				} else if (parts[0].equalsIgnoreCase("vote") && parts.length > 2) {
 					int voteId = Integer.parseInt(parts[1]);
-					String vote = parts[2];
+					String vote = StringUtils.join(Arrays.copyOfRange(parts, 2, parts.length), " ");
 
 					f.channel().writeAndFlush(new VotePacket(voteId, vote)).sync();
 				} else {
