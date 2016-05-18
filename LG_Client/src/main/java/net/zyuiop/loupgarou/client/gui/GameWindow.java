@@ -1,7 +1,6 @@
 package net.zyuiop.loupgarou.client.gui;
 
 import com.google.common.collect.Lists;
-import com.sun.deploy.uitoolkit.impl.fx.ui.FXUIFactory;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -10,6 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
@@ -19,8 +19,10 @@ import net.zyuiop.loupgarou.game.GameState;
 import net.zyuiop.loupgarou.game.Role;
 import net.zyuiop.loupgarou.game.tasks.RepeatableTask;
 import net.zyuiop.loupgarou.game.tasks.TaskManager;
-import net.zyuiop.loupgarou.protocol.network.MessageType;
-import net.zyuiop.loupgarou.protocol.packets.clientbound.*;
+import net.zyuiop.loupgarou.protocol.packets.clientbound.GameJoinConfirmPacket;
+import net.zyuiop.loupgarou.protocol.packets.clientbound.SetPlayersPacket;
+import net.zyuiop.loupgarou.protocol.packets.clientbound.VoteEndPacket;
+import net.zyuiop.loupgarou.protocol.packets.clientbound.VoteRequestPacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.JoinGamePacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.SendMessagePacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.VotePacket;
@@ -35,28 +37,35 @@ import java.util.stream.Collectors;
  */
 public class GameWindow extends Stage {
 	private final NetworkManager networkManager;
-	private final TextArea       mainArea;
+	private final VBox           mainArea;
 	private final VBox           players;
 	private final VBox           votes;
 	private final Map<Integer, VotePane> voteMap = new HashMap<>();
-	private final Label roomNameLabel;
-	private final Label hostLabel;
-	private final Label stateLabel;
-	private final Label phaseLabel;
-	private final Label roleLabel;
-	private final VBox  gameState;
+	private final Label     roomNameLabel;
+	private final Label     hostLabel;
+	private final Label     stateLabel;
+	private final Label     phaseLabel;
+	private final Label     roleLabel;
+	private final VBox      gameState;
 	private final TextField message;
-	private final Button sendMessage;
+	private final Button    sendMessage;
 	private Role role = null;
 
 	private GameJoinConfirmPacket joinData;
 
 	private Pane setupMainArea() {
-		mainArea.setEditable(false);
-		mainArea.setWrapText(true);
 		mainArea.setPadding(Insets.EMPTY);
 		mainArea.setMinHeight(600);
-		mainArea.clear();
+		mainArea.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, null)));
+
+		ScrollPane pane = new ScrollPane(mainArea);
+		pane.setPadding(Insets.EMPTY);
+		pane.setMinHeight(600);
+		pane.fitToHeightProperty().setValue(true);
+		pane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
+		mainArea.setFillWidth(true);
+		pane.setFitToWidth(true);
 
 		message.clear();
 		message.setDisable(false);
@@ -68,9 +77,11 @@ public class GameWindow extends Stage {
 		HBox hBox = new HBox(message, sendMessage);
 		hBox.setSpacing(5);
 
-		VBox center = new VBox(mainArea, hBox);
+		VBox center = new VBox(pane, hBox);
 		center.setSpacing(5);
 		center.setPadding(new Insets(10, 5, 10, 5));
+		center.setMaxHeight(Double.MAX_VALUE);
+		VBox.setVgrow(center, Priority.ALWAYS);
 
 		return center;
 	}
@@ -94,6 +105,8 @@ public class GameWindow extends Stage {
 		VBox left = new VBox(gameState, disconnect, new Separator(Orientation.HORIZONTAL), votes);
 		left.setPadding(new Insets(10, 5, 10, 10));
 		left.setSpacing(7);
+		left.setMaxHeight(Double.MAX_VALUE);
+		VBox.setVgrow(left, Priority.ALWAYS);
 
 		return left;
 	}
@@ -119,7 +132,7 @@ public class GameWindow extends Stage {
 		setTitle("Not ready");
 		setWidth(1024);
 
-		mainArea = new TextArea();
+		mainArea = new VBox();
 		message = new TextField();
 		sendMessage = new Button("Envoyer");
 		sendMessage.setOnMouseClicked(event -> {
@@ -162,8 +175,25 @@ public class GameWindow extends Stage {
 	}
 
 	public void writeText(String text) {
+		writeText(text, null);
+	}
+
+	public void writeText(Label label) {
 		if (Platform.isFxApplicationThread()) {
-			mainArea.appendText(text);
+			label.setWrapText(true);
+			mainArea.getChildren().add(label);
+		} else {
+			Platform.runLater(() -> writeText(label));
+		}
+	}
+
+	public void writeText(String text, String style) {
+		if (Platform.isFxApplicationThread()) {
+			Label label = new Label(text);
+			label.setWrapText(true);
+			if (style != null)
+				label.setStyle(style);
+			mainArea.getChildren().add(label);
 		} else {
 			Platform.runLater(() -> writeText(text));
 		}
