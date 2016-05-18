@@ -1,4 +1,4 @@
-package net.zyuiop.loupgarou.client;
+package net.zyuiop.loupgarou.client.auth;
 
 /**
  * @author zyuiop

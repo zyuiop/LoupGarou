@@ -12,6 +12,8 @@ import javafx.util.Callback;
 import net.zyuiop.loupgarou.client.LGClient;
 import net.zyuiop.loupgarou.client.net.NetworkManager;
 import net.zyuiop.loupgarou.game.Role;
+import net.zyuiop.loupgarou.game.tasks.RepeatableTask;
+import net.zyuiop.loupgarou.game.tasks.TaskManager;
 import net.zyuiop.loupgarou.protocol.network.GameInfo;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.CreateGamePacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.JoinGamePacket;
@@ -32,6 +34,13 @@ public class HomeWindow extends Stage {
 
 		setTitle("Loup Garou - " + networkManager.getName() + " @ " + networkManager.getIp() + ":" + networkManager.getPort());
 		setHeight(350);
+
+		TaskManager.submit(new RepeatableTask(15, 15) {
+			@Override
+			public void run() {
+				networkManager.send(new RefreshGameListPacket());
+			}
+		});
 
 		gameView = new TableView<>();
 
@@ -91,7 +100,7 @@ public class HomeWindow extends Stage {
 			if (selectedRoles.contains(Role.THIEF))
 				roleSize -= 2;
 
-			if (maxPl < 9) {
+			/*if (maxPl < 9) {
 				new Alert(Alert.AlertType.WARNING, "Il faut au moins 9 joueurs !", new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE)).show();
 			} else if (maxWolf * 3 > maxPl) {
 				new Alert(Alert.AlertType.WARNING, "Il y a trop de loups !", new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE)).show();
@@ -99,14 +108,14 @@ public class HomeWindow extends Stage {
 				new Alert(Alert.AlertType.WARNING, "Il faut au moins un loup !", new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE)).show();
 			} else if (roleSize + maxWolf > maxPl) {
 				new Alert(Alert.AlertType.WARNING, "Il y a plus de personnages et\nde loups que de joueurs !", new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE)).show();
-			} else {
+			} else {*/
 				List<Role> r = new ArrayList<>();
 				r.addAll(selectedRoles);
 				for (int i = 0; i < maxWolf; i++)
 					r.add(Role.WOLF);
 
 				networkManager.send(new CreateGamePacket(nameVal, maxPl, r.toArray(new Role[r.size()])));
-			}
+			//} TODO : uncomment to enable input check
 		});
 
 		GridPane layout = new GridPane();
@@ -148,7 +157,7 @@ public class HomeWindow extends Stage {
 
 		TableColumn<GameInfo, String> stateCol = new TableColumn<>("État");
 		stateCol.setCellValueFactory((TableColumn.CellDataFeatures<GameInfo, String> param) ->
-				new ReadOnlyStringWrapper(param.getValue().getState().toString())
+				new ReadOnlyStringWrapper(param.getValue().getState().getHumanState())
 		);
 
 		gameView.getColumns().addAll(nameCol, hostCol, playersCol, stateCol);

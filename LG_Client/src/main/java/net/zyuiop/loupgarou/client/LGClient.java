@@ -6,6 +6,8 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.stage.Stage;
+import net.zyuiop.loupgarou.client.auth.AuthenticationService;
+import net.zyuiop.loupgarou.client.auth.RSAAuthenticationService;
 import net.zyuiop.loupgarou.client.gui.LoginWindow;
 import net.zyuiop.loupgarou.client.net.NetworkManager;
 import org.apache.logging.log4j.LogManager;
@@ -13,14 +15,13 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayDeque;
 import java.util.Optional;
 
 /**
  * @author zyuiop
  */
 public class LGClient extends Application {
-	public static final Logger logger = LogManager.getRootLogger();
+	public static final Logger                logger      = LogManager.getRootLogger();
 	public static final AuthenticationService authService = new RSAAuthenticationService(new File(System.getProperty("user.dir")));
 
 	public static void main(String[] args) throws NoSuchAlgorithmException {

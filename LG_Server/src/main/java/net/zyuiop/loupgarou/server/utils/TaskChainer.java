@@ -1,9 +1,9 @@
-package net.zyuiop.loupgarou.server.tasks;
+package net.zyuiop.loupgarou.server.utils;
 
 import net.zyuiop.loupgarou.server.LGServer;
+import net.zyuiop.loupgarou.game.tasks.Task;
 
 import java.util.ArrayDeque;
-import java.util.Queue;
 
 /**
  * @author zyuiop

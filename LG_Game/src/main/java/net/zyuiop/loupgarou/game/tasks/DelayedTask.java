@@ -1,4 +1,4 @@
-package net.zyuiop.loupgarou.server.tasks;
+package net.zyuiop.loupgarou.game.tasks;
 
 /**
  * @author zyuiop

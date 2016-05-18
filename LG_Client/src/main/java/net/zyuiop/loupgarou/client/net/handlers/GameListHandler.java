@@ -1,7 +1,7 @@
 package net.zyuiop.loupgarou.client.net.handlers;
 
 import com.google.common.collect.Lists;
-import net.zyuiop.loupgarou.client.PacketHandler;
+import net.zyuiop.loupgarou.client.net.PacketHandler;
 import net.zyuiop.loupgarou.client.net.NetworkManager;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.GameListPacket;
 

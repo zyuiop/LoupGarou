@@ -1,9 +1,11 @@
-package net.zyuiop.loupgarou.client;
+package net.zyuiop.loupgarou.client.net;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import net.zyuiop.loupgarou.protocol.Packet;
-import net.zyuiop.loupgarou.protocol.packets.clientbound.LoginResponsePacket;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,27 +16,18 @@ import java.util.Map;
 public class ProtocolHandler extends ChannelInboundHandlerAdapter {
 	private static Map<Class<? extends Packet>, PacketHandler<?>> handlerMap = new HashMap<>();
 
-	static {
-		handle(LoginResponsePacket.class, packet -> {
-			if (packet.isSuccess()) {
-				BasicClient.logger.info("Login success : " + packet.getErrorMessage());
-			} else {
-				BasicClient.logger.info("Login failed : " + packet.getErrorMessage());
-				System.exit(0);
-			}
-		});
-	}
-
-	@Override
-	public void channelInactive(ChannelHandlerContext ctx) {
-		BasicClient.logger.info("Disconnected.");
-		System.exit(0);
-	}
-
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		Packet packet = (Packet) msg;
 		handle(packet);
+	}
+
+	@Override
+	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		Platform.runLater(() -> {
+			new Alert(Alert.AlertType.ERROR, "Connexion perdue.", ButtonType.CLOSE).showAndWait();
+			Platform.exit();
+		});
 	}
 
 	private <T extends Packet> void handle(T packet) {

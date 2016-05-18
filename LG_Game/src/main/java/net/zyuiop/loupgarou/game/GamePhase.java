@@ -4,9 +4,20 @@ package net.zyuiop.loupgarou.game;
  * @author zyuiop
  */
 public enum GamePhase {
-	DAY,			// Vote
-	PREPARATION,	// Cupidon, Stealer...
-	PRE_NIGHT,		// Voyante, Salvateur...
-	NIGHT,			// Loups Garous
-	END_NIGHT		// Loups Blancs, Sorcière, Corbeau...
+	DAY("Jour"),			// Vote
+	PREPARATION("Préparation"),	// Cupidon, Stealer...
+	PRE_NIGHT("Début de la nuit"),		// Voyante, Salvateur...
+	NIGHT("Nuit"),			// Loups Garous
+	END_NIGHT("Fin de la nuit")		// Loups Blancs, Sorcière, Corbeau...
+	;
+
+	private final String humanPhase;
+
+	GamePhase(String humanPhase) {
+		this.humanPhase = humanPhase;
+	}
+
+	public String getHumanPhase() {
+		return humanPhase;
+	}
 }

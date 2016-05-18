@@ -8,10 +8,9 @@ import net.zyuiop.loupgarou.server.LGServer;
 import net.zyuiop.loupgarou.server.game.Game;
 import net.zyuiop.loupgarou.server.game.GamePlayer;
 import net.zyuiop.loupgarou.server.game.votes.Vote;
-import net.zyuiop.loupgarou.server.tasks.Task;
-import net.zyuiop.loupgarou.server.tasks.TaskChainer;
+import net.zyuiop.loupgarou.game.tasks.Task;
+import net.zyuiop.loupgarou.server.utils.TaskChainer;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
 

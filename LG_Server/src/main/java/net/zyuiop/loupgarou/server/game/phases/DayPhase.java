@@ -9,7 +9,7 @@ import net.zyuiop.loupgarou.server.game.Game;
 import net.zyuiop.loupgarou.server.game.GamePlayer;
 import net.zyuiop.loupgarou.server.game.votes.MajorityVote;
 import net.zyuiop.loupgarou.server.game.votes.Vote;
-import net.zyuiop.loupgarou.server.tasks.Task;
+import net.zyuiop.loupgarou.game.tasks.Task;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Iterator;

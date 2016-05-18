@@ -1,19 +1,18 @@
 package net.zyuiop.loupgarou.server.game.votes;
 
+import com.google.common.collect.Lists;
 import net.zyuiop.loupgarou.protocol.Packet;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.VoteEndPacket;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.VoteRequestPacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.VotePacket;
 import net.zyuiop.loupgarou.server.LGServer;
-import net.zyuiop.loupgarou.server.game.Game;
 import net.zyuiop.loupgarou.server.game.GamePlayer;
 import net.zyuiop.loupgarou.server.network.ProtocolHandler;
-import net.zyuiop.loupgarou.server.tasks.RepeatableTask;
-import net.zyuiop.loupgarou.server.tasks.Task;
-import net.zyuiop.loupgarou.server.tasks.TaskManager;
+import net.zyuiop.loupgarou.game.tasks.RepeatableTask;
+import net.zyuiop.loupgarou.game.tasks.Task;
+import net.zyuiop.loupgarou.game.tasks.TaskManager;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -52,7 +51,7 @@ public abstract class Vote extends Task {
 	public Vote(int time, String name, Collection<GamePlayer> players, String[] availableChoices) {
 		this.time = time;
 		this.name = name;
-		this.players = players;
+		this.players = Lists.newArrayList(players);
 		this.availableChoices = availableChoices;
 		votes.put(id, this);
 

@@ -1,6 +1,4 @@
-package net.zyuiop.loupgarou.server.tasks;
-
-import net.zyuiop.loupgarou.server.LGServer;
+package net.zyuiop.loupgarou.game.tasks;
 
 /**
  * @author zyuiop

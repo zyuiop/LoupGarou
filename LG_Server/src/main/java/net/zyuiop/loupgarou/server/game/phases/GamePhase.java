@@ -1,7 +1,7 @@
 package net.zyuiop.loupgarou.server.game.phases;
 
 import net.zyuiop.loupgarou.server.game.Game;
-import net.zyuiop.loupgarou.server.tasks.TaskChainer;
+import net.zyuiop.loupgarou.server.utils.TaskChainer;
 
 /**
  * @author zyuiop

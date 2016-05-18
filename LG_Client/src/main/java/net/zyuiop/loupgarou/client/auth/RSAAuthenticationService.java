@@ -1,4 +1,4 @@
-package net.zyuiop.loupgarou.client;
+package net.zyuiop.loupgarou.client.auth;
 
 import com.google.common.base.Charsets;
 import net.zyuiop.loupgarou.protocol.utils.RSAUtils;

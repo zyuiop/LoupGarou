@@ -6,5 +6,6 @@ package net.zyuiop.loupgarou.protocol.network;
 public enum MessageType {
 	USER,
 	SYSTEM,
-	GAME
+	GAME,
+	ERROR
 }

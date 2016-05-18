@@ -1,4 +1,4 @@
-package net.zyuiop.loupgarou.server.tasks;
+package net.zyuiop.loupgarou.game.tasks;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListeningExecutorService;

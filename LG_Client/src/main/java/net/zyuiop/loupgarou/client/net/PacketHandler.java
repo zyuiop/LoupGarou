@@ -1,4 +1,4 @@
-package net.zyuiop.loupgarou.client;
+package net.zyuiop.loupgarou.client.net;
 
 import net.zyuiop.loupgarou.protocol.Packet;
 

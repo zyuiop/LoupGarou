@@ -8,17 +8,13 @@ import net.zyuiop.loupgarou.game.Role;
 import net.zyuiop.loupgarou.protocol.Packet;
 import net.zyuiop.loupgarou.protocol.network.GameInfo;
 import net.zyuiop.loupgarou.protocol.network.MessageType;
-import net.zyuiop.loupgarou.protocol.packets.clientbound.GameStatePacket;
-import net.zyuiop.loupgarou.protocol.packets.clientbound.MessagePacket;
-import net.zyuiop.loupgarou.protocol.packets.clientbound.SetPhasePacket;
-import net.zyuiop.loupgarou.protocol.packets.clientbound.SetStatePacket;
-import net.zyuiop.loupgarou.server.LGServer;
+import net.zyuiop.loupgarou.protocol.packets.clientbound.*;
 import net.zyuiop.loupgarou.server.game.phases.Phases;
 import net.zyuiop.loupgarou.server.game.phases.PreparationPhase;
 import net.zyuiop.loupgarou.server.game.tasks.HunterTask;
-import net.zyuiop.loupgarou.server.tasks.DelayedTask;
-import net.zyuiop.loupgarou.server.tasks.TaskChainer;
-import net.zyuiop.loupgarou.server.tasks.TaskManager;
+import net.zyuiop.loupgarou.game.tasks.DelayedTask;
+import net.zyuiop.loupgarou.server.utils.TaskChainer;
+import net.zyuiop.loupgarou.game.tasks.TaskManager;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -49,42 +45,56 @@ public class Game {
 			if (!players.contains(player)) {
 				if (players.size() >= config.getPlayers()) {
 					spectators.add(player);
-					player.getClient().sendPacket(new MessagePacket(MessageType.SYSTEM, "Vous rejoignez en tant que spectateur !"));
+					player.sendPacket(new MessagePacket(MessageType.SYSTEM, "Vous rejoignez en tant que spectateur !"));
 					return;
 				}
 
 				spectators.remove(player);
 				players.add(player);
+				broadcastPlayerChange();
 				player.setGame(this);
-				player.getClient().sendPacket(new MessagePacket(MessageType.SYSTEM, "Vous avez rejoint la partie !"));
+				player.sendPacket(new MessagePacket(MessageType.SYSTEM, "Vous avez rejoint la partie !"));
 				sendToAll(new MessagePacket(MessageType.SYSTEM, player.getName() + " a rejoint la partie !"));
-				sendGameState(player);
+				confirmJoin(player);
 
 				if (players.size() >= config.getPlayers())
 					start();
 			} else {
-				player.getClient().sendPacket(new MessagePacket(MessageType.SYSTEM, "Vous êtes déjà dans cette partie !"));
-				sendGameState(player);
+				player.sendPacket(new MessagePacket(MessageType.SYSTEM, "Vous êtes déjà dans cette partie !"));
+				confirmJoin(player);
 			}
 		} else {
 			if (!players.contains(player)) {
 				spectators.add(player);
 				player.getClient().sendPacket(new MessagePacket(MessageType.SYSTEM, "Vous rejoignez en tant que spectateur !"));
-				sendGameState(player);
+				confirmJoin(player);
 			}
 		}
 	}
 
+	protected void confirmJoin(GamePlayer player) {
+		player.sendPacket(new GameJoinConfirmPacket(gameId, config.getName(), config.getHoster()));
+		sendGameState(player);
+	}
+
 	protected void sendGameState(GamePlayer player) {
-		player.getClient().sendPacket(new GameStatePacket(gameId, config.getName(), config.getHoster(), config.getCharacters(), getPlayerList()));
+		player.sendPacket(new SetPhasePacket(phase));
+		player.sendPacket(new SetStatePacket(state));
+		player.sendPacket(new SetPlayersPacket(config.getPlayers(), getPlayerList()));
+		if (state == GameState.STARTED)
+			player.sendPacket(new SetRolePacket(player.getRole())); // todo : à voir
+	}
+
+	protected void broadcastPlayerChange() {
+		sendToAll(new SetPlayersPacket(config.getPlayers(), getPlayerList()));
 	}
 
 	public void sendToPlayers(Packet packet) {
-		players.forEach(pl -> pl.getClient().sendPacket(packet));
+		players.forEach(pl -> pl.sendPacket(packet));
 	}
 
 	public void sendToSpectators(Packet packet) {
-		spectators.forEach(pl -> pl.getClient().sendPacket(packet));
+		spectators.forEach(pl -> pl.sendPacket(packet));
 	}
 
 	public void sendToAll(Packet packet) {
@@ -98,7 +108,7 @@ public class Game {
 	}
 
 	public void sendToAll(Packet packet, Role role, Role... roles) {
-		getPlayers(role, roles).forEach(pl -> pl.getClient().sendPacket(packet));
+		getPlayers(role, roles).forEach(pl -> pl.sendPacket(packet));
 	}
 
 	public Collection<GamePlayer> getPlayers(Role role, Role... roles) {
@@ -260,6 +270,7 @@ public class Game {
 		// TODO : some stuff, mayor reelection
 		players.remove(player);
 		spectators.add(player);
+		TaskManager.runAsync(this::broadcastPlayerChange);
 
 		if (player.getRole() == Role.HUNTER) {
 			chainer.justAfter(new HunterTask(this, chainer, player));
@@ -292,5 +303,21 @@ public class Game {
 
 	public int getGameId() {
 		return gameId;
+	}
+
+	public void sendMessage(GamePlayer player, String message) {
+		if (message.length() < 2)
+			return;
+
+		// TODO : check if player can send a message
+		// TODO : send to some targets only
+		if (players.contains(player)) {
+			sendToAll(new MessagePacket(MessageType.USER, player.getName(), message));
+		}
+	}
+
+	public void removePlayer(GamePlayer player) {
+		players.remove(player);
+		spectators.remove(player);
 	}
 }

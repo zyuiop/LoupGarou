@@ -1,12 +1,12 @@
 package net.zyuiop.loupgarou.server.game.characters;
 
 import net.zyuiop.loupgarou.game.Role;
+import net.zyuiop.loupgarou.game.tasks.Task;
 import net.zyuiop.loupgarou.protocol.network.MessageType;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.MessagePacket;
 import net.zyuiop.loupgarou.server.game.Game;
 import net.zyuiop.loupgarou.server.game.GamePlayer;
 import net.zyuiop.loupgarou.server.game.votes.CupidonVote;
-import net.zyuiop.loupgarou.server.tasks.Task;
 
 import java.util.Collection;
 import java.util.stream.Collectors;

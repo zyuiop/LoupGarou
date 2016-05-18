@@ -10,8 +10,10 @@ import net.zyuiop.loupgarou.server.game.roledata.RoleData;
 import net.zyuiop.loupgarou.server.game.roledata.RoleDatas;
 import net.zyuiop.loupgarou.server.network.ConnectedClient;
 
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Queue;
 
 /**
  * @author zyuiop
@@ -35,6 +37,7 @@ public class GamePlayer {
 	private GamePlayer lover = null;
 	private Game game;
 	private Map<String, Object> attributes = new HashMap<>();
+	private Queue<Packet> packetQueue = new ArrayDeque<>(); // Bad idea ?
 
 	private GamePlayer(String name) {
 		this.name = name;
@@ -46,6 +49,8 @@ public class GamePlayer {
 
 	public void setClient(ConnectedClient client) {
 		this.client = client;
+		while (packetQueue.size() > 0)
+			sendPacket(packetQueue.poll());
 	}
 
 	public Role getRole() {
@@ -89,6 +94,8 @@ public class GamePlayer {
 	public void sendPacket(Packet packet) {
 		if (client != null) {
 			client.sendPacket(packet);
+		} else {
+			packetQueue.add(packet);
 		}
 	}
 

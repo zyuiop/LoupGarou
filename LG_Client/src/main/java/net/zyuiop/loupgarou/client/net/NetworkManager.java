@@ -10,18 +10,16 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import javafx.application.Platform;
 import javafx.stage.Stage;
-import net.zyuiop.loupgarou.client.AuthenticationService;
+import net.zyuiop.loupgarou.client.auth.AuthenticationService;
 import net.zyuiop.loupgarou.client.LGClient;
-import net.zyuiop.loupgarou.client.ProtocolHandler;
+import net.zyuiop.loupgarou.client.gui.GameWindow;
 import net.zyuiop.loupgarou.client.gui.HomeWindow;
 import net.zyuiop.loupgarou.client.gui.LoginStatusWindow;
-import net.zyuiop.loupgarou.client.net.handlers.LoginHandler;
-import net.zyuiop.loupgarou.client.net.handlers.GameListHandler;
+import net.zyuiop.loupgarou.client.net.handlers.*;
 import net.zyuiop.loupgarou.protocol.Packet;
 import net.zyuiop.loupgarou.protocol.network.PacketDecoder;
 import net.zyuiop.loupgarou.protocol.network.PacketEncoder;
-import net.zyuiop.loupgarou.protocol.packets.clientbound.GameListPacket;
-import net.zyuiop.loupgarou.protocol.packets.clientbound.LoginResponsePacket;
+import net.zyuiop.loupgarou.protocol.packets.clientbound.*;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.LoginPacket;
 
 import static net.zyuiop.loupgarou.client.LGClient.logger;
@@ -36,12 +34,14 @@ public class NetworkManager {
 	private       Channel channel;
 	private Stage currentStage = null;
 	private HomeWindow homeWindow;
+	private GameWindow gameWindow;
 
 	public NetworkManager(String name, String ip, int port) {
 		this.name = name;
 		this.ip = ip;
 		this.port = port;
 		this.homeWindow = new HomeWindow(this);
+		this.gameWindow = new GameWindow(this);
 	}
 
 	public void connect() throws Exception {
@@ -70,6 +70,15 @@ public class NetworkManager {
 	private void initHandlers() {
 		ProtocolHandler.handle(LoginResponsePacket.class, new LoginHandler(this));
 		ProtocolHandler.handle(GameListPacket.class, new GameListHandler(this));
+		ProtocolHandler.handle(MessagePacket.class, new MessageHandler(this));
+		ProtocolHandler.handle(GameJoinConfirmPacket.class, new JoinHandler(this));
+		ProtocolHandler.handle(SetPlayersPacket.class, new PlayersHandler(this));
+		ProtocolHandler.handle(SetRolePacket.class, new RoleHandler(this));
+		ProtocolHandler.handle(SetPhasePacket.class, new PhaseHandler(this));
+		ProtocolHandler.handle(SetStatePacket.class, new StateHandler(this));
+		ProtocolHandler.handle(GameLeavePacket.class, new GameLeaveHandler(this));
+		ProtocolHandler.handle(VoteRequestPacket.class, new VoteHandler(this));
+		ProtocolHandler.handle(VoteEndPacket.class, new VoteEndHandler(this));
 	}
 
 	private void authentificate() {
@@ -127,5 +136,29 @@ public class NetworkManager {
 
 	public HomeWindow getHomeWindow() {
 		return homeWindow;
+	}
+
+	public GameWindow getGameWindow() {
+		return gameWindow;
+	}
+
+	public void joinGame(GameJoinConfirmPacket packet) {
+		// Todo : handle other game
+		if (!(currentStage instanceof GameWindow)) {
+			if (currentStage != null)
+				currentStage.close();
+			currentStage = gameWindow;
+			gameWindow.acceptGame(packet);
+			currentStage.show();
+		}
+	}
+
+	public void leaveGame() {
+		if (currentStage != null && currentStage == getHomeWindow())
+			return;
+		if (currentStage != null) {
+			currentStage.close();
+		}
+		initMainWindow();
 	}
 }
