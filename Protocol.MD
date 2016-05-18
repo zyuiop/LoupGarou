@@ -7,12 +7,16 @@ Current protocol version : 1
 
 ### String :
 
+| type    | description                            |
+|---------|----------------------------------------|
 | int (4) | size of the following array            |
 |---------|----------------------------------------|
 | byte[]  | array of bytes representing the string |
 
 ## Packet structure
 
+| type    | description      |
+|---------|------------------|
 | int (4) | id of the packet |
 |---------|------------------|
 | ...     | packet content   |
