@@ -20,24 +20,34 @@ public class RSAAuthenticationService implements AuthenticationService {
 	private final File       workingDirectory;
 	private final KeyFactory factory;
 
-	public RSAAuthenticationService(File workingDirectory) throws NoSuchAlgorithmException {
-		this.workingDirectory = workingDirectory;
-		this.factory = KeyFactory.getInstance("RSA");
+	public RSAAuthenticationService(File workingDirectory) {
+		this.workingDirectory = new File(workingDirectory, "keys");
+		if (!this.workingDirectory.exists())
+			this.workingDirectory.mkdir();
+
+		KeyFactory factory;
+		try {
+			factory = KeyFactory.getInstance("RSA");
+		} catch (NoSuchAlgorithmException e) {
+			factory = null;
+			e.printStackTrace();
+		}
+		this.factory = factory;
 	}
 
 	@Override
-	public boolean hasKey() {
-		File publicKey = new File(workingDirectory, "authkey.pub");
-		File privateKey = new File(workingDirectory, "authkey.priv");
+	public boolean hasKey(String username) {
+		File publicKey = new File(workingDirectory, username + ".pub");
+		File privateKey = new File(workingDirectory, username + ".priv");
 
 		return publicKey.exists() && privateKey.exists();
 	}
 
 	@Override
-	public String getPublicKey() {
-		File publicKey = new File(workingDirectory, "authkey.pub");
+	public String getPublicKey(String username) {
+		File publicKey = new File(workingDirectory, username + ".pub");
 		if (!publicKey.exists())
-			generateKeyPair();
+			generateKeyPair(username);
 		if (publicKey.exists())
 			try {
 				return IOUtils.toString(new FileReader(publicKey));
@@ -47,8 +57,8 @@ public class RSAAuthenticationService implements AuthenticationService {
 		return null;
 	}
 
-	private String getPrivateKey() {
-		File privateKey = new File(workingDirectory, "authkey.priv");
+	private String getPrivateKey(String username) {
+		File privateKey = new File(workingDirectory, username + ".priv");
 		if (!privateKey.exists())
 			return null;
 		if (privateKey.exists())
@@ -62,8 +72,8 @@ public class RSAAuthenticationService implements AuthenticationService {
 
 	@Override
 	public byte[] signData(long timestamp, String name) {
-		String key = getPublicKey();
-		String privateKey = getPrivateKey();
+		String key = getPublicKey(name);
+		String privateKey = getPrivateKey(name);
 		if (key == null || privateKey == null)
 			return null;
 
@@ -82,15 +92,15 @@ public class RSAAuthenticationService implements AuthenticationService {
 	}
 
 	@Override
-	public boolean generateKeyPair() {
+	public boolean generateKeyPair(String username) {
 		KeyPairGenerator kpg;
 		try {
 			kpg = KeyPairGenerator.getInstance("RSA");
 			kpg.initialize(2048);
 			KeyPair kp = kpg.generateKeyPair();
 
-			File publicKey = new File(workingDirectory, "authkey.pub");
-			File privateKey = new File(workingDirectory, "authkey.priv");
+			File publicKey = new File(workingDirectory, username + ".pub");
+			File privateKey = new File(workingDirectory, username + ".priv");
 
 			RSAPublicKeySpec pub = factory.getKeySpec(kp.getPublic(), RSAPublicKeySpec.class);
 			RSAPrivateKeySpec priv = factory.getKeySpec(kp.getPrivate(), RSAPrivateKeySpec.class);

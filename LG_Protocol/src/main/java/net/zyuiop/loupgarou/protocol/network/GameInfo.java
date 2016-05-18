@@ -69,4 +69,16 @@ public class GameInfo {
 	public void setMaxPlayers(int maxPlayers) {
 		this.maxPlayers = maxPlayers;
 	}
+
+	@Override
+	public String toString() {
+		return "GameInfo{" +
+				"id=" + id +
+				", gameName='" + gameName + '\'' +
+				", hoster='" + hoster + '\'' +
+				", state=" + state +
+				", currentPlayers=" + currentPlayers +
+				", maxPlayers=" + maxPlayers +
+				'}';
+	}
 }

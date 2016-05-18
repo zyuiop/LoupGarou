@@ -6,6 +6,7 @@ import net.zyuiop.loupgarou.protocol.packets.clientbound.GameListPacket;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.MessagePacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.CreateGamePacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.JoinGamePacket;
+import net.zyuiop.loupgarou.protocol.packets.serverbound.RefreshGameListPacket;
 import net.zyuiop.loupgarou.server.LGServer;
 import net.zyuiop.loupgarou.server.network.ConnectedClient;
 import net.zyuiop.loupgarou.server.network.ProtocolHandler;
@@ -35,6 +36,8 @@ public class GamesManager {
 			Game game = createGame(config);
 			game.handleJoin(client.getPlayer());
 		}));
+
+		ProtocolHandler.handle(RefreshGameListPacket.class, (((packet, client) -> client.sendPacket(new GameListPacket(getInfos())))));
 	}
 
 	public static Game getGame(int id) {

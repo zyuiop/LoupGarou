@@ -4,11 +4,11 @@ package net.zyuiop.loupgarou.client;
  * @author zyuiop
  */
 public interface AuthenticationService {
-	boolean hasKey();
+	boolean hasKey(String username);
 
-	String getPublicKey();
+	String getPublicKey(String username);
 
-	byte[] signData(long timestamp, String name);
+	byte[] signData(long timestamp, String username);
 
-	boolean generateKeyPair();
+	boolean generateKeyPair(String username);
 }

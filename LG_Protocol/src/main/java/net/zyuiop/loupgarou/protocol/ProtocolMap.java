@@ -4,10 +4,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import net.zyuiop.loupgarou.game.GameState;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.*;
-import net.zyuiop.loupgarou.protocol.packets.serverbound.CreateGamePacket;
-import net.zyuiop.loupgarou.protocol.packets.serverbound.JoinGamePacket;
-import net.zyuiop.loupgarou.protocol.packets.serverbound.LoginPacket;
-import net.zyuiop.loupgarou.protocol.packets.serverbound.VotePacket;
+import net.zyuiop.loupgarou.protocol.packets.serverbound.*;
 
 /**
  * @author zyuiop
@@ -33,6 +30,7 @@ public class ProtocolMap {
 		protocolMap.put(0xA1, CreateGamePacket.class);
 		protocolMap.put(0xA2, JoinGamePacket.class);
 		protocolMap.put(0xA3, VotePacket.class);
+		protocolMap.put(0xA4, RefreshGameListPacket.class);
 	}
 
 	public static Class<? extends Packet> getPacketFor(int packetId) throws NoSuckPacketException {

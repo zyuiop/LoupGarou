@@ -39,10 +39,7 @@ public class BasicClient {
 		EventLoopGroup workerGroup = new NioEventLoopGroup();
 		logger.info("Loading LoupGarou CLI-Client...");
 		AuthenticationService service = new RSAAuthenticationService(new File(System.getProperty("user.dir")));
-		if (!service.hasKey()) {
-			logger.info("No RSA key found, generating it...");
-			service.generateKeyPair();
-		}
+
 
 		String ip;
 		String name;
@@ -123,7 +120,7 @@ public class BasicClient {
 
 			ProtocolHandler.handle(VoteEndPacket.class, packet -> logger.info("Vote #" + packet.getVoteId() + " has terminated."));
 
-			f.channel().writeAndFlush(new LoginPacket(name, time, service.getPublicKey(), service.signData(time, name))).sync();
+			f.channel().writeAndFlush(new LoginPacket(name, time, service.getPublicKey(name), service.signData(time, name))).sync();
 
 			while (f.channel().isActive()) {
 				String command = scanner.nextLine();
