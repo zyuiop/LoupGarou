@@ -10,7 +10,6 @@ Current protocol version : 1
 | type    | description                            |
 |---------|----------------------------------------|
 | int (4) | size of the following array            |
-|---------|----------------------------------------|
 | byte[]  | array of bytes representing the string |
 
 ## Packet structure
@@ -18,7 +17,6 @@ Current protocol version : 1
 | type    | description      |
 |---------|------------------|
 | int (4) | id of the packet |
-|---------|------------------|
 | ...     | packet content   |
 
 ## Server -> Client
