@@ -10,8 +10,9 @@ public enum Role {
 	HUNTER("Chasseur", "Lors de sa mort, il peut choisir d'éliminer un autre joueur.", "Éliminer tous les Loup Garous"),
 	CUPIDON("Cupidon", "Désigne deux amoureux : si l'un meurt l'autre se suicide", "Éliminer tous les Loup Garous"),
 	WITCH("Sorcière", "Dispose d'une potion de vie et d'une potion de mort", "Éliminer tous les Loup Garous"),
-	// LITTLE_GIRL("Petite Fille", "Peut espionner les loups durant la nuit", "Éliminer tous les Loup Garous"),
-	THIEF("Voleur", "Peut choisir une carte parmi deux en début de partie", "Dépend de la carte choisie")
+	LITTLE_GIRL("Petite Fille", "Peut espionner les loups durant la nuit", "Éliminer tous les Loup Garous"),
+	THIEF("Voleur", "Peut choisir une carte parmi deux en début de partie", "Dépend de la carte choisie"),
+	SAVER("Salvateur", "Peut protéger une personne des Loups Garous", "Éliminer tous les Loup Garous")
 	;
 
 	private final String name;

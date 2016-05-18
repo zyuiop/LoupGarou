@@ -15,5 +15,6 @@ public class PreNightPhaase extends GamePhase {
 	@Override
 	protected void invoke(Game game) {
 		next(Characters.getCharacter(Role.MEDIUM, game));
+		next(Characters.getCharacter(Role.SAVER, game));
 	}
 }

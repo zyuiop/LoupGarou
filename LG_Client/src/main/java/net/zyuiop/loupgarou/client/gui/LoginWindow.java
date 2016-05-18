@@ -6,10 +6,12 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import net.zyuiop.loupgarou.client.LGClient;
+import net.zyuiop.loupgarou.protocol.packets.serverbound.SendMessagePacket;
 
 /**
  * @author zyuiop
@@ -23,6 +25,20 @@ public class LoginWindow extends Stage {
 		button.setOnMouseClicked(event -> {
 			close();
 			client.connect(ip.getText(), name.getText());
+		});
+
+		name.setOnKeyReleased(event -> {
+			if (event.getCode() == KeyCode.ENTER) {
+				close();
+				client.connect(ip.getText(), name.getText());
+			}
+		});
+
+		ip.setOnKeyReleased(event -> {
+			if (event.getCode() == KeyCode.ENTER) {
+				close();
+				client.connect(ip.getText(), name.getText());
+			}
 		});
 
 		GridPane pane = new GridPane();

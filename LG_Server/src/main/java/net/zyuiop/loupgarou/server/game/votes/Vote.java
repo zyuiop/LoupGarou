@@ -2,6 +2,8 @@ package net.zyuiop.loupgarou.server.game.votes;
 
 import com.google.common.collect.Lists;
 import net.zyuiop.loupgarou.protocol.Packet;
+import net.zyuiop.loupgarou.protocol.network.MessageType;
+import net.zyuiop.loupgarou.protocol.packets.clientbound.MessagePacket;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.VoteEndPacket;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.VoteRequestPacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.VotePacket;
@@ -127,6 +129,9 @@ public abstract class Vote extends Task {
 		if (!isIn)
 			return;
 		votations.put(player, packet.getVote());
+		player.sendMessage(MessageType.SYSTEM, "Vote pris en compte.");
+		if (players.size() > 1)
+			broadcastPacket(new MessagePacket(MessageType.GAME, player.getName() + " vote pour " + packet.getVote() + "."));
 
 		if (votations.size() == players.size()) {
 			endVote();

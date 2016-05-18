@@ -1,10 +1,14 @@
 package net.zyuiop.loupgarou.server.game;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import net.zyuiop.loupgarou.game.GamePhase;
 import net.zyuiop.loupgarou.game.GameState;
 import net.zyuiop.loupgarou.game.Role;
+import net.zyuiop.loupgarou.game.tasks.DelayedTask;
+import net.zyuiop.loupgarou.game.tasks.Task;
+import net.zyuiop.loupgarou.game.tasks.TaskManager;
 import net.zyuiop.loupgarou.protocol.Packet;
 import net.zyuiop.loupgarou.protocol.network.GameInfo;
 import net.zyuiop.loupgarou.protocol.network.MessageType;
@@ -12,9 +16,8 @@ import net.zyuiop.loupgarou.protocol.packets.clientbound.*;
 import net.zyuiop.loupgarou.server.game.phases.Phases;
 import net.zyuiop.loupgarou.server.game.phases.PreparationPhase;
 import net.zyuiop.loupgarou.server.game.tasks.HunterTask;
-import net.zyuiop.loupgarou.game.tasks.DelayedTask;
+import net.zyuiop.loupgarou.server.game.votes.MajorityVote;
 import net.zyuiop.loupgarou.server.utils.TaskChainer;
-import net.zyuiop.loupgarou.game.tasks.TaskManager;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,9 +34,10 @@ public class Game {
 	private final GameConfig config;
 
 	// Running variables
-	private GamePlayer      nextVictim   = null;
-	private Set<GamePlayer> otherVictims = Sets.newHashSet();
-	private GamePlayer      mayor        = null;
+	private GamePlayer      nextVictim      = null;
+	private Set<GamePlayer> otherVictims    = Sets.newHashSet();
+	private GamePlayer      mayor           = null;
+	private String          protectedPlayer = null;
 
 	protected Game(int gameId, GameConfig config) {
 		this.gameId = gameId;
@@ -173,6 +177,7 @@ public class Game {
 		PreparationPhase phase = (PreparationPhase) Phases.getPhase(GamePhase.PREPARATION);
 		phase.setRoles(available);
 		phase.setRunAfter(this::runPreNight);
+		phase.justAfter(electMayor());
 		phase.run(this);
 	}
 
@@ -266,11 +271,39 @@ public class Game {
 		this.mayor = mayor;
 	}
 
+	private Task electMayor() {
+		return new MajorityVote(60, "Votez pour un Capitaine", getPlayers(), getPlayerList()) {
+			@Override
+			public void run() {
+				if (!hasToEnd())
+					super.run();
+				else
+					complete();
+			}
+
+			@Override
+			protected void maximalResults(Multimap<String, GamePlayer> maximal) {
+				if (maximal.size() > 0) {
+					String vote = maximal.keySet().iterator().next();
+					GamePlayer mayor = GamePlayer.getPlayer(vote);
+					if (mayor != null) {
+						Game.this.mayor = mayor;
+						sendToAll(new MessagePacket(MessageType.GAME, mayor.getName() + " est le nouveau capitaine de la ville !"));
+					}
+				}
+			}
+		};
+	}
+
 	public TaskChainer stumpPlayer(GamePlayer player, TaskChainer chainer) {
 		// TODO : some stuff, mayor reelection
 		players.remove(player);
 		spectators.add(player);
 		TaskManager.runAsync(this::broadcastPlayerChange);
+
+		if (mayor == player) {
+			chainer.justAfter(electMayor());
+		}
 
 		if (player.getRole() == Role.HUNTER) {
 			chainer.justAfter(new HunterTask(this, chainer, player));
@@ -278,7 +311,7 @@ public class Game {
 
 		if (player.getLover() != null && players.contains(player.getLover())) {
 			chainer.autoCompleteJustAfter(() -> {
-				sendToAll(new MessagePacket(MessageType.GAME, player.getLover().getName() + " (" + player.getLover().getRole() + ") était amoureux de " + player.getName() + " et se suicide !"));
+				sendToAll(new MessagePacket(MessageType.GAME, player.getLover().getName() + " (" + player.getLover().getRole().getName() + ") était amoureux de " + player.getName() + " et se suicide !"));
 				player.getLover().setLover(null);
 				stumpPlayer(player.getLover(), chainer);
 			});
@@ -309,15 +342,48 @@ public class Game {
 		if (message.length() < 2)
 			return;
 
-		// TODO : check if player can send a message
-		// TODO : send to some targets only
-		if (players.contains(player)) {
+		if (state == GameState.STARTED) {
+			if (spectators.contains(player)) {
+				sendToSpectators(new MessagePacket(MessageType.USER, player.getName(), message));
+			} else if (players.contains(player)) {
+				switch (phase) {
+					case PREPARATION:
+					case PRE_NIGHT:
+					case END_NIGHT:
+						player.sendPacket(new MessagePacket(MessageType.SYSTEM, "Vous ne pouvez pas envoyer de message pendant cette phase de jeu !"));
+						break;
+					case NIGHT:
+						if (player.getRole() == Role.WOLF) {
+							sendToAll(new MessagePacket(MessageType.USER, player.getName(), message), Role.WOLF);
+							sendToAll(new MessagePacket(MessageType.USER, "Loup", message), Role.LITTLE_GIRL);
+						} else {
+							player.sendPacket(new MessagePacket(MessageType.SYSTEM, "Vous ne pouvez pas envoyer de message pendant cette phase de jeu !"));
+						}
+						break;
+					case DAY:
+						sendToAll(new MessagePacket(MessageType.USER, player.getName(), message));
+						break;
+				}
+			}
+		} else {
 			sendToAll(new MessagePacket(MessageType.USER, player.getName(), message));
 		}
+
+		// TODO : check if player can send a message
+		// TODO : send to some targets only
+
 	}
 
 	public void removePlayer(GamePlayer player) {
 		players.remove(player);
 		spectators.remove(player);
+	}
+
+	public String getProtectedPlayer() {
+		return protectedPlayer;
+	}
+
+	public void setProtectedPlayer(String protectedPlayer) {
+		this.protectedPlayer = protectedPlayer;
 	}
 }

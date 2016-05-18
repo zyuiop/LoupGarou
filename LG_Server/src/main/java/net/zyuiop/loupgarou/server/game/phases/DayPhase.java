@@ -105,7 +105,7 @@ public class DayPhase extends GamePhase {
 								game.sendToAll(new MessagePacket(MessageType.GAME, "Le joueur désigné ne semble plus exister... Étrange..."));
 								LGServer.getLogger().info("Error in game " + game.getGameInfo().getGameName() + " ! Player designated " + designated + " is no longer playing !");
 							} else {
-								game.sendToAll(new MessagePacket(MessageType.GAME, "La victime désignée est " + designated + " !"));
+								game.sendToAll(new MessagePacket(MessageType.GAME, "La victime désignée est " + designated + " (" + player.getRole().getName() + ") !"));
 								game.stumpPlayer(player, DayPhase.this);
 							}
 						}

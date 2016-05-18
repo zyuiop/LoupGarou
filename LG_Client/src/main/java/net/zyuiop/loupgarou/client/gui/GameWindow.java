@@ -19,10 +19,8 @@ import net.zyuiop.loupgarou.game.GameState;
 import net.zyuiop.loupgarou.game.Role;
 import net.zyuiop.loupgarou.game.tasks.RepeatableTask;
 import net.zyuiop.loupgarou.game.tasks.TaskManager;
-import net.zyuiop.loupgarou.protocol.packets.clientbound.GameJoinConfirmPacket;
-import net.zyuiop.loupgarou.protocol.packets.clientbound.SetPlayersPacket;
-import net.zyuiop.loupgarou.protocol.packets.clientbound.VoteEndPacket;
-import net.zyuiop.loupgarou.protocol.packets.clientbound.VoteRequestPacket;
+import net.zyuiop.loupgarou.protocol.network.MessageType;
+import net.zyuiop.loupgarou.protocol.packets.clientbound.*;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.JoinGamePacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.SendMessagePacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.VotePacket;
@@ -47,37 +45,27 @@ public class GameWindow extends Stage {
 	private final Label phaseLabel;
 	private final Label roleLabel;
 	private final VBox  gameState;
+	private final TextField message;
+	private final Button sendMessage;
+	private Role role = null;
 
 	private GameJoinConfirmPacket joinData;
 
 	private Pane setupMainArea() {
 		mainArea.setEditable(false);
+		mainArea.setWrapText(true);
 		mainArea.setPadding(Insets.EMPTY);
 		mainArea.setMinHeight(600);
 		mainArea.clear();
 
-		TextField message = new TextField();
+		message.clear();
+		message.setDisable(false);
 		message.setMaxWidth(Double.MAX_VALUE);
 		HBox.setHgrow(message, Priority.ALWAYS);
 
-		Button send = new Button("Envoyer");
-		send.setOnMouseClicked(event -> {
-			if (message.getText().length() > 1) {
-				networkManager.send(new SendMessagePacket(message.getText()));
-				message.clear();
-			}
-		});
+		sendMessage.setDisable(false);
 
-		message.setOnKeyReleased(event -> {
-			if (event.getCode() == KeyCode.ENTER) {
-				if (message.getText().length() > 1) {
-					networkManager.send(new SendMessagePacket(message.getText()));
-					message.clear();
-				}
-			}
-		});
-
-		HBox hBox = new HBox(message, send);
+		HBox hBox = new HBox(message, sendMessage);
 		hBox.setSpacing(5);
 
 		VBox center = new VBox(mainArea, hBox);
@@ -132,6 +120,23 @@ public class GameWindow extends Stage {
 		setWidth(1024);
 
 		mainArea = new TextArea();
+		message = new TextField();
+		sendMessage = new Button("Envoyer");
+		sendMessage.setOnMouseClicked(event -> {
+			if (message.getText().length() > 1) {
+				networkManager.send(new SendMessagePacket(message.getText()));
+				message.clear();
+			}
+		});
+
+		message.setOnKeyReleased(event -> {
+			if (event.getCode() == KeyCode.ENTER) {
+				if (message.getText().length() > 1) {
+					networkManager.send(new SendMessagePacket(message.getText()));
+					message.clear();
+				}
+			}
+		});
 
 		roomNameLabel = new Label();
 		hostLabel = new Label();
@@ -187,18 +192,46 @@ public class GameWindow extends Stage {
 		stateLabel.setText("Êtat : " + state.getHumanState());
 		if (!gameState.getChildren().contains(stateLabel))
 			gameState.getChildren().add(stateLabel);
+
+		if (state != GameState.STARTED) {
+			message.setDisable(false);
+			sendMessage.setDisable(false);
+		}
 	}
 
 	public void setPhase(GamePhase phase) {
 		phaseLabel.setText("Tour : " + phase.getHumanPhase());
 		if (!gameState.getChildren().contains(phaseLabel))
 			gameState.getChildren().add(phaseLabel);
+
+		switch (phase) {
+			case PREPARATION:
+			case PRE_NIGHT:
+			case END_NIGHT:
+				message.setDisable(true);
+				sendMessage.setDisable(true);
+				break;
+			case NIGHT:
+				if (role == Role.WOLF || role == null) {
+					message.setDisable(false);
+					sendMessage.setDisable(false);
+				} else {
+					message.setDisable(true);
+					sendMessage.setDisable(true);
+				}
+				break;
+			case DAY:
+				message.setDisable(false);
+				sendMessage.setDisable(false);
+				break;
+		}
 	}
 
 	public void setRole(Role role) {
 		roleLabel.setText("Personnage : " + role.getName() + "\nBut : " + role.getObjective() + "\nPouvoirs : " + role.getPower());
 		if (!gameState.getChildren().contains(roleLabel))
 			gameState.getChildren().add(roleLabel);
+		this.role = role;
 	}
 
 	public void setPlayers(SetPlayersPacket packet) {

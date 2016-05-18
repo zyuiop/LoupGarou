@@ -40,7 +40,10 @@ public class WolfCharacter extends Character {
 						LGServer.getLogger().info("Error in game " + game.getGameInfo().getGameName() + " ! Player designated " + victim + " is no longer playing !");
 					} else {
 						game.sendToAll(new MessagePacket(MessageType.GAME, "La victime désignée est " + victim + " !"), Role.WOLF);
-						game.setNextVictim(player);
+						if (game.getProtectedPlayer() == null || !game.getProtectedPlayer().equalsIgnoreCase(victim))
+							game.setNextVictim(player);
+
+						game.setProtectedPlayer(null);
 					}
 				}
 			}

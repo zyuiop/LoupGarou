@@ -50,6 +50,8 @@ public class WitchCharacter extends Character {
 							}
 						}
 					});
+				} else {
+					witch.sendMessage(MessageType.GAME, "Il n'y a personne à sauver cette nuit.");
 				}
 			}
 
