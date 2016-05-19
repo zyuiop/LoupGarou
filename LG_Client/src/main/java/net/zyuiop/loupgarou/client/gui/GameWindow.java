@@ -2,6 +2,8 @@ package net.zyuiop.loupgarou.client.gui;
 
 import com.google.common.collect.Lists;
 import javafx.application.Platform;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -37,7 +39,7 @@ public class GameWindow extends Stage {
 	private final VBox           mainArea;
 	private final VBox           players;
 	private final VBox           votes;
-	private final Accordion voteValues;
+	private final Accordion      voteValues;
 	private final Map<Integer, VoteHolder> voteMap = new HashMap<>();
 	private final Label     roomNameLabel;
 	private final Label     hostLabel;
@@ -59,8 +61,15 @@ public class GameWindow extends Stage {
 		ScrollPane pane = new ScrollPane(mainArea);
 		pane.setPadding(Insets.EMPTY);
 		pane.setMinHeight(600);
-		pane.fitToHeightProperty().setValue(true);
+		pane.setMaxHeight(600);
+		//pane.fitToHeightProperty().setValue(true);
 		pane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
+		DoubleProperty hProperty = new SimpleDoubleProperty();
+		hProperty.bind(mainArea.heightProperty());
+		hProperty.addListener((observable, oldValue, newValue) -> {
+			pane.setVvalue(1D);
+		});
 
 		mainArea.setFillWidth(true);
 		pane.setFitToWidth(true);
@@ -138,6 +147,7 @@ public class GameWindow extends Stage {
 
 		setTitle("Not ready");
 		setWidth(1024);
+		setResizable(false);
 
 		mainArea = new VBox();
 		message = new TextField();
@@ -320,8 +330,8 @@ public class GameWindow extends Stage {
 	}
 
 	private class VoteHolder {
-		private final VotePane pane;
-		private final VoteValuePane value;
+		private final VotePane       pane;
+		private final VoteValuePane  value;
 		private final RepeatableTask task;
 
 		private VoteHolder(VoteRequestPacket packet) {

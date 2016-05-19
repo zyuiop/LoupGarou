@@ -49,8 +49,15 @@ public class GamePlayer {
 
 	public void setClient(ConnectedClient client) {
 		this.client = client;
-		while (packetQueue.size() > 0)
-			sendPacket(packetQueue.poll());
+		while (packetQueue.size() > 0) {
+			Packet packet = packetQueue.poll();
+			if (packet != null)
+				try {
+					sendPacket(packet);
+				} catch (Exception e) {
+					LGServer.getLogger().error("Error while sending " + packet.getClass() + " to " + getName(), e);
+				}
+		}
 	}
 
 	public Role getRole() {

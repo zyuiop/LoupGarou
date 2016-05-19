@@ -22,8 +22,8 @@ public class ConnectedClient {
 		this.context = context;
 		this.name = name;
 		this.player = GamePlayer.getPlayer(name);
-		this.player.setClient(this);
 		clients.put(name, this);
+		this.player.setClient(this);
 	}
 
 	public String getName() {

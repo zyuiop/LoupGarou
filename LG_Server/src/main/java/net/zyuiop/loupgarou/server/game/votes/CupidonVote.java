@@ -29,6 +29,9 @@ public class CupidonVote extends Vote {
 
 	@Override
 	protected void handleResults(Map<GamePlayer, String> results) {
+		if (results.size() == 0)
+			return;
+
 		String result = results.values().iterator().next();
 		if (result == null) {
 			finallySelected = "";

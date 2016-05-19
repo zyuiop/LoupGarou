@@ -395,6 +395,8 @@ public class Game {
 	}
 
 	public void removePlayer(GamePlayer player) {
+		sendToAll(new MessagePacket(MessageType.SYSTEM, player.getName() + " a quitté la partie."));
+
 		players.remove(player);
 		spectators.remove(player);
 	}
