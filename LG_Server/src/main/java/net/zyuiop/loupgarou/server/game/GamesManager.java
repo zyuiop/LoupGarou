@@ -1,5 +1,6 @@
 package net.zyuiop.loupgarou.server.game;
 
+import net.zyuiop.loupgarou.game.GameState;
 import net.zyuiop.loupgarou.game.Role;
 import net.zyuiop.loupgarou.protocol.network.GameInfo;
 import net.zyuiop.loupgarou.protocol.network.MessageType;
@@ -128,5 +129,14 @@ public class GamesManager {
 		});
 
 		games.remove(game.getGameId());
+	}
+
+	public static void disconnect(GamePlayer player) {
+		Game game = player.getGame();
+		if (game != null) {
+			if (game.getState() != GameState.STARTED) {
+				game.removePlayer(player);
+			}
+		}
 	}
 }

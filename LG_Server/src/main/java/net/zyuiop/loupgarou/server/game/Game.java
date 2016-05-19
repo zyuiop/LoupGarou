@@ -428,4 +428,8 @@ public class Game {
 	public boolean checkPassword(String password) {
 		return config.getPassword() == null || config.getPassword().equals(password);
 	}
+
+	public GameState getState() {
+		return state;
+	}
 }

@@ -4,6 +4,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import net.zyuiop.loupgarou.protocol.Packet;
 import net.zyuiop.loupgarou.server.game.GamePlayer;
+import net.zyuiop.loupgarou.server.game.GamesManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +32,7 @@ public class ConnectedClient {
 
 	public void unregister() {
 		clients.remove(name);
+		GamesManager.leaveGame(GamePlayer.getPlayer(name));
 		GamePlayer.getPlayer(name).setClient(null);
 		if (context.channel().isOpen())
 			context.close();
