@@ -21,9 +21,12 @@ public class CupidonCharacter extends Character {
 
 	@Override
 	public void run() {
+		if (game.isAncientDead())
+			return;
+
 		Collection<GamePlayer> cupidon = game.getPlayers(Role.CUPIDON);
 		if (cupidon.size() > 0) {
-			Collection<String> others = game.getPlayers().stream().filter(player -> player.getRole() != Role.CUPIDON).map(GamePlayer::getName).collect(Collectors.toList());
+			Collection<String> others = game.getPlayers().stream().map(GamePlayer::getName).collect(Collectors.toList());
 			String[] choices = others.toArray(new String[others.size()]);
 
 			game.sendToAll(new MessagePacket(MessageType.GAME, "Cupdion désigne les deux amoureux..."));
