@@ -8,6 +8,7 @@ import javafx.scene.control.Dialog;
 import javafx.stage.Stage;
 import net.zyuiop.loupgarou.client.auth.AuthenticationService;
 import net.zyuiop.loupgarou.client.auth.RSAAuthenticationService;
+import net.zyuiop.loupgarou.client.data.SavedServers;
 import net.zyuiop.loupgarou.client.gui.LoginWindow;
 import net.zyuiop.loupgarou.client.net.NetworkManager;
 import org.apache.logging.log4j.LogManager;
@@ -32,7 +33,13 @@ public class LGClient extends Application {
 
 	@Override
 	public void start(Stage primaryStage) throws Exception {
-		new LoginWindow(this).show();
+		try {
+			SavedServers savedServers = new SavedServers(new File(System.getProperty("user.dir")));
+			new LoginWindow(this, savedServers).show();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
 	}
 
 	@Override
@@ -43,8 +50,8 @@ public class LGClient extends Application {
 		System.exit(0);
 	}
 
-	public void connect(String address, String username) {
-		logger.info("Trying to connect to " + address + " with username " + username);
+	public void connect(String ip, int port, String username) {
+		logger.info("Trying to connect to " + ip + ":" + port + " with username " + username);
 
 		if (!authService.hasKey(username)) {
 			Dialog keyInfo = new Dialog();
@@ -58,26 +65,12 @@ public class LGClient extends Application {
 			authService.generateKeyPair(username);
 		}
 
-		String[] parts = address.split(":");
-		String ip = parts[0];
-		int port = 2325;
-		if (parts.length > 1) {
-			try {
-				port = Integer.parseInt(parts[1]);
-			} catch (Exception e) {
-				Alert error = new Alert(Alert.AlertType.ERROR, "Le numéro de port entré est invalide !", new ButtonType("Fermer", ButtonBar.ButtonData.CANCEL_CLOSE));
-				error.showAndWait();
-				System.exit(0);
-				return;
-			}
-		}
-
 		networkManager = new NetworkManager(username, ip, port);
 		try {
 			networkManager.connect();
 		} catch (Exception e) {
 			networkManager.closeWindow();
-			logger.error("Exception while connecting to " + address + " : ", e);
+			logger.error("Exception while connecting to " + ip + ":" + port + " : ", e);
 
 			ButtonType cancel = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
 			ButtonType retry = new ButtonType("Réessayer", ButtonBar.ButtonData.YES);
@@ -85,7 +78,7 @@ public class LGClient extends Application {
 			Alert error = new Alert(Alert.AlertType.ERROR, "Impossible de se connecter au serveur : \n" + e.getMessage(), retry, cancel);
 			Optional<ButtonType> result = error.showAndWait();
 			if (result.isPresent() && result.get() == retry) {
-				connect(address, username);
+				connect(ip, port, username);
 			} else {
 				System.exit(0);
 			}
