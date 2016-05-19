@@ -16,7 +16,13 @@ import java.util.List;
 public class PacketEncoder extends MessageToByteEncoder<Packet> {
 	@Override
 	protected void encode(ChannelHandlerContext ctx, Packet msg, ByteBuf out) throws Exception {
-		out.writeByte(ProtocolMap.getPacketIdFor(msg));
-		msg.write(new PacketData(out));
+		ByteBuf buf = ctx.alloc().buffer();
+
+		buf.writeByte(ProtocolMap.getPacketIdFor(msg));
+		msg.write(new PacketData(buf));
+
+		out.writeInt(buf.writerIndex());
+		out.writeBytes(buf);
+		buf.release();
 	}
 }

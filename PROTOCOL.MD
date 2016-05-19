@@ -105,10 +105,11 @@ The `index` value is used in the packet. It is always encoded as a byte.
 
 ## Packet structure
 
-| type    | description      |
-|---------|------------------|
-| byte    | id of the packet |
-| ...     | packet content   |
+| type    | description        |
+|---------|--------------------|
+| int     | size of the packet |
+| byte    | id of the packet   |
+| ...     | packet content     |
 
 ## Server -> Client
 

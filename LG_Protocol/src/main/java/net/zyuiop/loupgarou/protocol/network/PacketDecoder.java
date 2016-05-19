@@ -13,10 +13,18 @@ import java.util.List;
 
 /**
  * @author zyuiop
+ *
+ * Don't forget frame encoder/decoder
  */
 public class PacketDecoder extends ByteToMessageDecoder {
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+		int size = in.readInt();
+		if (in.readableBytes() < size) {
+			in.resetReaderIndex();
+			return;
+		}
+
 		int packetId = in.readUnsignedByte();
 		try {
 			Class<? extends Packet> packetClass = ProtocolMap.getPacketFor(packetId);
