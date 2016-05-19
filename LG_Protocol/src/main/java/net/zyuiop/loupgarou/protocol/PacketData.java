@@ -46,22 +46,29 @@ public class PacketData extends ByteBuf {
 	}
 
 	public <T extends Enum> T readEnum(Class<T> tClass) {
-		return tClass.getEnumConstants()[readInt()];
+		return tClass.getEnumConstants()[readUnsignedByte()];
 	}
 
 	public <T extends Enum> void writeEnum(T value) {
-		writeInt(value.ordinal());
+		writeByte(value.ordinal());
 	}
 
 	public <T> T[] readArray(Class<T> tClass, Supplier<T> reader) {
-		T[] array = (T[]) Array.newInstance(tClass, readInt());
+		boolean highAmount = readBoolean();
+		int size = highAmount ? readInt() : readUnsignedByte();
+		T[] array = (T[]) Array.newInstance(tClass, size);
 		for (int i = 0; i < array.length; i++)
 			array[i] = reader.get();
 		return array;
 	}
 
 	public <T> void writeArray(T[] array, Consumer<T> writer) {
-		writeInt(array.length);
+		writeBoolean(array.length > 0xFF);
+		if (array.length > 0xFF)
+			writeInt(array.length);
+		else
+			writeByte(array.length);
+
 		for (T elt : array)
 			writer.accept(elt);
 	}

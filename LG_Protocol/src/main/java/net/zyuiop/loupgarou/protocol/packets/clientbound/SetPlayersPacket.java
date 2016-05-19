@@ -20,13 +20,13 @@ public class SetPlayersPacket extends Packet {
 
 	@Override
 	public void read(PacketData byteBuf) {
-		maxPlayers = byteBuf.readInt();
+		maxPlayers = byteBuf.readUnsignedByte();
 		players = byteBuf.readArray(String.class, byteBuf::readString);
 	}
 
 	@Override
 	public void write(PacketData byteBuf) {
-		byteBuf.writeInt(maxPlayers);
+		byteBuf.writeByte(maxPlayers);
 		byteBuf.writeArray(players, byteBuf::writeString);
 	}
 

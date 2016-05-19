@@ -29,8 +29,8 @@ public class GameListPacket extends Packet {
 			String name = byteBuf.readString();
 			String host = byteBuf.readString();
 			GameState state = byteBuf.readEnum(GameState.class);
-			int players = byteBuf.readInt();
-			int maxPlayers = byteBuf.readInt();
+			int players = byteBuf.readUnsignedByte();
+			int maxPlayers = byteBuf.readUnsignedByte();
 
 			games[i] = new GameInfo(id, name, host, state, players, maxPlayers);
 		}
@@ -44,8 +44,8 @@ public class GameListPacket extends Packet {
 			byteBuf.writeString(info.getGameName());
 			byteBuf.writeString(info.getHoster());
 			byteBuf.writeEnum(info.getState());
-			byteBuf.writeInt(info.getCurrentPlayers());
-			byteBuf.writeInt(info.getMaxPlayers());
+			byteBuf.writeByte(info.getCurrentPlayers());
+			byteBuf.writeByte(info.getMaxPlayers());
 		}
 	}
 

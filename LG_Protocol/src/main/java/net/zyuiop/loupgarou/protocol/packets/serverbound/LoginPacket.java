@@ -32,7 +32,7 @@ public class LoginPacket extends Packet {
 
 	@Override
 	public void read(PacketData byteBuf) {
-		protocolVersion = byteBuf.readInt();
+		protocolVersion = byteBuf.readShort();
 		username = byteBuf.readString();
 		enforceAuth = byteBuf.readBoolean();
 		if (enforceAuth) {
@@ -45,7 +45,7 @@ public class LoginPacket extends Packet {
 
 	@Override
 	public void write(PacketData byteBuf) {
-		byteBuf.writeInt(ProtocolMap.protocolVersion);
+		byteBuf.writeShort(ProtocolMap.protocolVersion);
 		byteBuf.writeString(username);
 		byteBuf.writeBoolean(enforceAuth);
 		if (enforceAuth) {

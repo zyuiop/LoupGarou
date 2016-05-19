@@ -1,5 +1,6 @@
 package net.zyuiop.loupgarou.server.game;
 
+import net.zyuiop.loupgarou.game.Role;
 import net.zyuiop.loupgarou.protocol.network.GameInfo;
 import net.zyuiop.loupgarou.protocol.network.MessageType;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.GameLeavePacket;
@@ -14,6 +15,7 @@ import net.zyuiop.loupgarou.server.LGServer;
 import net.zyuiop.loupgarou.server.network.ConnectedClient;
 import net.zyuiop.loupgarou.server.network.ProtocolHandler;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -49,7 +51,14 @@ public class GamesManager {
 				return;
 			}
 
+			if (!Arrays.asList(packet.getCharacters()).contains(Role.WOLF)) {
+				client.sendPacket(new MessagePacket(MessageType.ERROR, "Partie invalide :\nIl est nécessaire d'avoir au moins un loup."));
+				return;
+			}
+
 			GameConfig config = new GameConfig(packet.getName(), client.getName(), packet.getPlayers(), packet.getCharacters());
+
+
 			Game game = createGame(config);
 			game.handleJoin(client.getPlayer());
 		}));

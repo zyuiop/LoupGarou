@@ -15,7 +15,7 @@ import java.util.List;
 public class PacketDecoder extends ByteToMessageDecoder {
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-		int packetId = in.readInt();
+		int packetId = in.readUnsignedByte();
 		Class<? extends Packet> packetClass = ProtocolMap.getPacketFor(packetId);
 		Packet packet = packetClass.newInstance();
 		packet.read(new PacketData(in));

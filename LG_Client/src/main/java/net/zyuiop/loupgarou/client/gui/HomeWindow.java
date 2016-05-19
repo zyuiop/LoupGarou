@@ -54,8 +54,14 @@ public class HomeWindow extends Stage {
 		TextField name = new TextField();
 		TextField maxPlayers = new TextField();
 		maxPlayers.textProperty().addListener((observable, oldValue, newValue) -> {
-			if (!newValue.matches("\\d*")) {
-				maxPlayers.setText(oldValue);
+			try {
+				if (!newValue.matches("\\d*")) {
+					maxPlayers.setText(oldValue);
+				} else if (Integer.parseInt(newValue) > 255) {
+					maxPlayers.setText(oldValue);
+				}
+			} catch (Exception e) {
+
 			}
 		});
 
@@ -93,14 +99,17 @@ public class HomeWindow extends Stage {
 		create.setMaxWidth(Double.MAX_VALUE);
 		create.setOnMouseClicked(event -> {
 			String nameVal = name.getText();
-			int maxPl = Integer.parseInt(maxPlayers.getText());
+			short maxPl = Short.parseShort(maxPlayers.getText());
 			int maxWolf = Integer.parseInt(maxWolves.getText());
 			List<Role> selectedRoles = roles.getSelectionModel().getSelectedItems();
 			int roleSize = selectedRoles.size();
 			if (selectedRoles.contains(Role.THIEF))
 				roleSize -= 2;
 
-			/*if (maxPl < 9) {
+			if (maxPl > 70) {
+				new Alert(Alert.AlertType.WARNING, "Il est impossible d'accepter plus de 70 joueurs dans une même partie.", new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE)).show();
+			}
+			/*else if (maxPl < 9) {
 				new Alert(Alert.AlertType.WARNING, "Il faut au moins 9 joueurs !", new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE)).show();
 			} else if (maxWolf * 3 > maxPl) {
 				new Alert(Alert.AlertType.WARNING, "Il y a trop de loups !", new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE)).show();
