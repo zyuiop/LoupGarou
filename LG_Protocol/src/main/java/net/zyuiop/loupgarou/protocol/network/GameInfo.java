@@ -12,14 +12,16 @@ public class GameInfo {
 	private GameState state;
 	private int       currentPlayers;
 	private int       maxPlayers;
+	private boolean hasPassword;
 
-	public GameInfo(int id, String gameName, String hoster, GameState state, int currentPlayers, int maxPlayers) {
+	public GameInfo(int id, String gameName, String hoster, GameState state, int currentPlayers, int maxPlayers, boolean hasPassword) {
 		this.id = id;
 		this.gameName = gameName;
 		this.hoster = hoster;
 		this.state = state;
 		this.currentPlayers = currentPlayers;
 		this.maxPlayers = maxPlayers;
+		this.hasPassword = hasPassword;
 	}
 
 	public int getId() {
@@ -70,6 +72,14 @@ public class GameInfo {
 		this.maxPlayers = maxPlayers;
 	}
 
+	public boolean isHasPassword() {
+		return hasPassword;
+	}
+
+	public void setHasPassword(boolean hasPassword) {
+		this.hasPassword = hasPassword;
+	}
+
 	@Override
 	public String toString() {
 		return "GameInfo{" +
@@ -79,6 +89,7 @@ public class GameInfo {
 				", state=" + state +
 				", currentPlayers=" + currentPlayers +
 				", maxPlayers=" + maxPlayers +
+				", hasPassword=" + hasPassword +
 				'}';
 	}
 }

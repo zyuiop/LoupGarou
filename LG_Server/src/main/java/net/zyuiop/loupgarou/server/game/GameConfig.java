@@ -13,12 +13,18 @@ public class GameConfig {
 	private final int players;
 	private final int villagers;
 	private Role[]    characters;
+	private String password = null;
 
 	public GameConfig(String name, String hoster, int players, Role... characters) {
+		this(name, hoster, players, null, characters);
+	}
+
+	public GameConfig(String name, String hoster, int players, String password, Role... characters) {
 		this.name = name;
 		this.hoster = hoster;
 		this.players = players;
 		this.characters = characters;
+		this.password = password;
 
 		int neededVillagers = players;
 		for (Role role : characters)
@@ -59,6 +65,15 @@ public class GameConfig {
 				", players=" + players +
 				", villagers=" + villagers +
 				", characters=" + Arrays.toString(characters) +
+				", password='" + password + '\'' +
 				'}';
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 }

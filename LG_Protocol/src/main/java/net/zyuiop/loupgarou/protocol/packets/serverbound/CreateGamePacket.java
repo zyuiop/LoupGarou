@@ -12,6 +12,7 @@ public class CreateGamePacket extends Packet {
 	private String name;
 	private short    players;
 	private Role[] characters;
+	private String password;
 
 	public CreateGamePacket() {
 	}
@@ -21,6 +22,14 @@ public class CreateGamePacket extends Packet {
 		this.name = name;
 		this.players = players;
 		this.characters = characters;
+		this.password = null;
+	}
+
+	public CreateGamePacket(String name, short players, Role[] characters, String password) {
+		this.name = name;
+		this.players = players;
+		this.characters = characters;
+		this.password = password;
 	}
 
 	@Override
@@ -28,6 +37,7 @@ public class CreateGamePacket extends Packet {
 		name = byteBuf.readString();
 		players = byteBuf.readUnsignedByte();
 		characters = byteBuf.readArray(Role.class, () -> byteBuf.readEnum(Role.class));
+		password = byteBuf.readString();
 	}
 
 	@Override
@@ -35,6 +45,11 @@ public class CreateGamePacket extends Packet {
 		byteBuf.writeString(name);
 		byteBuf.writeByte(players);
 		byteBuf.writeArray(characters, byteBuf::writeEnum);
+		byteBuf.writeString(password);
+	}
+
+	public String getPassword() {
+		return password;
 	}
 
 	public String getName() {

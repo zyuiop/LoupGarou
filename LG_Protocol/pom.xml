@@ -4,7 +4,7 @@
 
     <groupId>net.zyuiop</groupId>
     <artifactId>lg-protocol</artifactId>
-    <version>4</version>
+    <version>5</version>
     <packaging>jar</packaging>
 
     <dependencies>

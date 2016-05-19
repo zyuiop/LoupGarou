@@ -1,6 +1,8 @@
 package net.zyuiop.loupgarou.client.gui;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
+import com.google.common.hash.Hashing;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.geometry.Insets;
@@ -21,6 +23,7 @@ import net.zyuiop.loupgarou.protocol.packets.serverbound.RefreshGameListPacket;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author zyuiop
@@ -52,7 +55,13 @@ public class HomeWindow extends Stage {
 
 	private Pane constructLeftBox() {
 		TextField name = new TextField();
+		name.setPromptText("Nom de partie");
+
+		PasswordField passwordField = new PasswordField();
+		passwordField.setPromptText("Mot de passe de la salle (facultatif)");
+
 		TextField maxPlayers = new TextField();
+		maxPlayers.setPromptText("Nombre de joueurs maximal");
 		maxPlayers.textProperty().addListener((observable, oldValue, newValue) -> {
 			try {
 				if (!newValue.matches("\\d*")) {
@@ -66,6 +75,7 @@ public class HomeWindow extends Stage {
 		});
 
 		TextField maxWolves = new TextField();
+		maxWolves.setPromptText("Nombre de loups");
 		maxWolves.textProperty().addListener((observable, oldValue, newValue) -> {
 			if (!newValue.matches("\\d*")) {
 				maxWolves.setText(oldValue);
@@ -106,6 +116,14 @@ public class HomeWindow extends Stage {
 			if (selectedRoles.contains(Role.THIEF))
 				roleSize -= 2;
 
+			String password = passwordField.getText();
+			if (password.length() == 0)
+				password = null;
+			else
+				password = Hashing.sha256().hashString(password, Charsets.UTF_8).toString();
+
+			LGClient.logger.info("Password : " + password);
+
 			if (maxPl > 70) {
 				new Alert(Alert.AlertType.WARNING, "Il est impossible d'accepter plus de 70 joueurs dans une même partie.", new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE)).show();
 			}
@@ -118,12 +136,12 @@ public class HomeWindow extends Stage {
 			} else if (roleSize + maxWolf > maxPl) {
 				new Alert(Alert.AlertType.WARNING, "Il y a plus de personnages et\nde loups que de joueurs !", new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE)).show();
 			} else {*/
-				List<Role> r = new ArrayList<>();
-				r.addAll(selectedRoles);
-				for (int i = 0; i < maxWolf; i++)
-					r.add(Role.WOLF);
+			List<Role> r = new ArrayList<>();
+			r.addAll(selectedRoles);
+			for (int i = 0; i < maxWolf; i++)
+				r.add(Role.WOLF);
 
-				networkManager.send(new CreateGamePacket(nameVal, maxPl, r.toArray(new Role[r.size()])));
+			networkManager.send(new CreateGamePacket(nameVal, maxPl, r.toArray(new Role[r.size()]), password));
 			//} TODO : uncomment to enable input check
 		});
 
@@ -131,13 +149,15 @@ public class HomeWindow extends Stage {
 		layout.add(new Label("Créer une nouvelle partie"), 0, 0, 2, 1);
 		layout.add(new Label("Nom"), 0, 1);
 		layout.add(name, 1, 1);
-		layout.add(new Label("Joueurs"), 0, 2);
-		layout.add(maxPlayers, 1, 2);
-		layout.add(new Label("Loups"), 0, 3);
-		layout.add(maxWolves, 1, 3);
-		layout.add(new Label("Personnages"), 0, 4);
-		layout.add(roles, 1, 4);
-		layout.add(create, 0, 5, 2, 1);
+		layout.add(new Label("Mot de passe"), 0, 2);
+		layout.add(passwordField, 1, 2);
+		layout.add(new Label("Joueurs"), 0, 3);
+		layout.add(maxPlayers, 1, 3);
+		layout.add(new Label("Loups"), 0, 4);
+		layout.add(maxWolves, 1, 4);
+		layout.add(new Label("Personnages"), 0, 5);
+		layout.add(roles, 1, 5);
+		layout.add(create, 0, 6, 2, 1);
 		layout.setVgap(7);
 		layout.setHgap(10);
 
@@ -182,7 +202,22 @@ public class HomeWindow extends Stage {
 				Alert alert = new Alert(Alert.AlertType.WARNING, "Merci de sélectionner une partie pour pouvoir\nvous connecter dessus !", new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE));
 				alert.show();
 			} else {
-				networkManager.send(new JoinGamePacket(selected.getId()));
+				String password = null;
+				if (selected.isHasPassword()) {
+					TextInputDialog dialog = new TextInputDialog();
+					dialog.getEditor().getStyleClass().add("password-field");
+					dialog.setHeaderText("Mot de passe requis");
+					dialog.setContentText("Saisissez le mot de passe de la partie :");
+					dialog.setTitle("Mot de passe requis");
+
+					Optional<String> optional = dialog.showAndWait();
+					if (!optional.isPresent())
+						return;
+
+					password = Hashing.sha256().hashString(optional.get(), Charsets.UTF_8).toString();
+				}
+
+				networkManager.send(new JoinGamePacket(selected.getId(), password));
 			}
 		});
 

@@ -133,7 +133,7 @@ public class Game {
 	}
 
 	public GameInfo getGameInfo() {
-		return new GameInfo(gameId, config.getName(), config.getHoster(), state, players.size(), config.getPlayers());
+		return new GameInfo(gameId, config.getName(), config.getHoster(), state, players.size(), config.getPlayers(), config.getPassword() != null);
 	}
 
 	public void start() {
@@ -423,5 +423,9 @@ public class Game {
 			return true;
 		}
 		return false;
+	}
+
+	public boolean checkPassword(String password) {
+		return config.getPassword() == null || config.getPassword().equals(password);
 	}
 }

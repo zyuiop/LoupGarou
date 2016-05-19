@@ -1,7 +1,7 @@
 Protocol Documentation
 ======================
 
-Current protocol version : 4
+Current protocol version : 5
 
 ## Some types definitions :
 
@@ -15,10 +15,10 @@ Current protocol version : 4
 
 ### String :
 
-| type    | description                            |
-|---------|----------------------------------------|
-| int (4) | size of the following array            |
-| byte[]  | array of bytes representing the string |
+| type    | description                            
+|---------|----------------------------------------
+| int (4) | size of the following array (or 0 for null)
+| byte[]  | array of bytes representing the string  (if size > 0)
 
 ### Array
 
@@ -42,6 +42,7 @@ A GameInfo object describes a game
 | GameState | state          | the current gamestate of this game
 | byte      | currentPlayers | The current amount of players
 | byte      | maxPlayers     | the maximal amount of players in this game
+| boolean   | hasPassword    | whether the game has or not a password
 
 ### Enumerations
 
@@ -262,14 +263,16 @@ This packet is sent to create a game.
 | string   | name             | the name of the game
 | byte     | players          | the maximal amount of players
 | Role[]   | characters       | the different characters involved in this game
+| string   | password         | the password required to join the game, or null for no password
 
 ### 0xA2 : Join Game
 
 This packet is sent to join a game
 
-| type  | name    | description
-|-------|---------|---------------
-| int   | gameId  | the id of the game to join
+| type   | name     | description
+|--------|----------|---------------
+| int    | gameId   | the id of the game to join
+| string | password | the password of the game, or null for no password
 
 ### 0xA3 : Vote
 

@@ -1,6 +1,5 @@
 package net.zyuiop.loupgarou.protocol.packets.clientbound;
 
-import io.netty.buffer.ByteBuf;
 import net.zyuiop.loupgarou.game.GameState;
 import net.zyuiop.loupgarou.protocol.Packet;
 import net.zyuiop.loupgarou.protocol.PacketData;
@@ -31,8 +30,9 @@ public class GameListPacket extends Packet {
 			GameState state = byteBuf.readEnum(GameState.class);
 			int players = byteBuf.readUnsignedByte();
 			int maxPlayers = byteBuf.readUnsignedByte();
+			boolean hasPassword = byteBuf.readBoolean();
 
-			games[i] = new GameInfo(id, name, host, state, players, maxPlayers);
+			games[i] = new GameInfo(id, name, host, state, players, maxPlayers, hasPassword);
 		}
 	}
 
@@ -46,6 +46,7 @@ public class GameListPacket extends Packet {
 			byteBuf.writeEnum(info.getState());
 			byteBuf.writeByte(info.getCurrentPlayers());
 			byteBuf.writeByte(info.getMaxPlayers());
+			byteBuf.writeBoolean(info.isHasPassword());
 		}
 	}
 

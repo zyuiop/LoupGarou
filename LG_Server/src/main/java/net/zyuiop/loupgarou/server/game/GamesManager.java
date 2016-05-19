@@ -39,8 +39,13 @@ public class GamesManager {
 
 			Game game = getGame(id);
 			if (game == null) {
-				client.sendPacket(new MessagePacket(MessageType.SYSTEM, "Cette partie n'existe pas !"));
+				client.sendPacket(new MessagePacket(MessageType.ERROR, "Cette partie n'existe pas !"));
 			} else {
+				if (!game.checkPassword(packet.getPassword())) {
+					client.sendPacket(new MessagePacket(MessageType.ERROR, "Mot de passe incorrect !"));
+					return;
+				}
+
 				game.handleJoin(client.getPlayer());
 			}
 		});
@@ -56,7 +61,7 @@ public class GamesManager {
 				return;
 			}
 
-			GameConfig config = new GameConfig(packet.getName(), client.getName(), packet.getPlayers(), packet.getCharacters());
+			GameConfig config = new GameConfig(packet.getName(), client.getName(), packet.getPlayers(), packet.getPassword(), packet.getCharacters());
 
 
 			Game game = createGame(config);
