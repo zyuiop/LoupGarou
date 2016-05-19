@@ -19,6 +19,7 @@ public class Characters {
 		characters.put(Role.CUPIDON, CupidonCharacter.class);
 		characters.put(Role.WITCH, WitchCharacter.class);
 		characters.put(Role.MEDIUM, MediumCharacter.class);
+		characters.put(Role.SAVER, SaverCharacter.class);
 	}
 
 	public static Character getCharacter(Role role, Game game) {
