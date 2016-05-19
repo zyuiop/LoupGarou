@@ -7,9 +7,9 @@ Current protocol version : 2
 
 ### Usual types
 
-| type name | size    | other information
+| type name | size    | other information
 |-----------|---------|---------------------
-| byte      | 1 byte  | unsigned byte, max value 255
+| byte      | 1 byte  | unsigned byte, max value 255
 | int       | 4 bytes | signed integer
 | short     | 2 bytes | signed integer
 
@@ -20,7 +20,7 @@ Current protocol version : 2
 | int (4) | size of the following array            |
 | byte[]  | array of bytes representing the string |
 
-### Array
+### Array
 
 They are marked as `T[]` where T is the type of the array.
 
@@ -36,11 +36,11 @@ A GameInfo object describes a game
 
 | type      | name           | description
 |-----------|----------------|--------------
-| int       | id             | id of the game
+| int       | id             | id of the game
 | string    | gameName       | the name of the game
-| string    | hoster         | the name of the player who hosts the game
+| string    | hoster         | the name of the player who hosts the game
 | GameState | state          | the current gamestate of this game
-| byte      | currentPlayers | The current amount of players
+| byte      | currentPlayers | The current amount of players
 | byte      | maxPlayers     | the maximal amount of players in this game
 
 ### Enumerations
@@ -51,7 +51,7 @@ The `index` value is used in the packet. It is always encoded as a byte.
 
 | index | description
 |-------|--------------
-| 0     | Day
+| 0     | Day
 | 1     | Preparation
 | 2     | Beggining of the night
 | 3     | Middle of the night
@@ -61,29 +61,29 @@ The `index` value is used in the packet. It is always encoded as a byte.
 
 | index | description
 |-------|--------------
-| 0     | Waiting : The game hasn't started yet 
+| 0     | Waiting : The game hasn't started yet 
 | 1     | Preparing : The game cannot be joined anymore but hasn't started yet
 | 2     | Started : The game is in progress
-| 3     | Finished : The game is over and will be removed soon
+| 3     | Finished : The game is over and will be removed soon
 
 #### Message Type
 
 | index | description
 |-------|--------------
 | 0     | User : game chat messages
-| 1     | System : system related messages (i.e: game joined...)
+| 1     | System : system related messages (i.e: game joined...)
 | 2     | Game : game related messages (i.e: kills, role attributions...)
 | 3     | Error : error messages, displayed in an Alert modal in the original client
 
 #### Role
 
-| index | name
+| index | name
 |-------|------------
 | 0     | Villager
 | 1     | Wolf
-| 2     | Medium *(Voyante)*
+| 2     | Medium *(Voyante)*
 | 4     | Hunter
-| 5     | Cupidon
+| 5     | Cupidon
 | 6     | Witch
 | 7     | Little girl
 | 8     | Thief
@@ -121,7 +121,7 @@ Sent by the server when the player joins a game, whether because he requested it
 
 | type   | name | description
 |--------|------|-------------
-| int    | id   | id of the joined game
+| int    | id   | id of the joined game
 | string | name | name of the joined game
 | string | host | name of the player who hosts the game
 
@@ -132,7 +132,7 @@ Sent by the server as a response to 0x00
 | type    | name    | description
 |---------|---------|-------------
 | boolean | success | true if login succeeded, false an error occured (the connexion will be closed just after sending this packet)
-| string  | message | the error message or a welcome message if login succeeded
+| string  | message | the error message or a welcome message if login succeeded
 
 ### 0x05 : Message
 
@@ -150,7 +150,7 @@ Sets the phase of the current game. Usually sent when the game phase changes or 
 
 | type      | name  | description
 |-----------|-------|-------------
-| GamePhase | phase | the current phase of the game
+| GamePhase | phase | the current phase of the game
 
 ### 0x07 : Set Role
 
@@ -166,7 +166,7 @@ Sets the state of the current game. Usually sent when the game state changes or 
 
 | type      | name  | description
 |-----------|-------|-------------
-| GameState | state | the current state of the game
+| GameState | state | the current state of the game
 
 ### 0x09 : Set players
 
@@ -205,9 +205,9 @@ Sent after connecting to a server. Any packet sent before this packet will be re
 | type     | name             | description
 |----------|------------------|-------------
 | short    | protocolVersion  | version of the protocol of the client
-| string   | username         | the username the player wants to use on the server
+| string   | username         | the username the player wants to use on the server
 | boolean  | enforceAuth      | whether to use or not the RSA authentication. If false, none of the following fields is defined.
-| long     | timestamp        | the timestamp of the authentication request (in milliseconds) (see below for more details on authentication)
+| long     | timestamp        | the timestamp of the authentication request (in milliseconds) (see below for more details on authentication)
 | string   | publicKey        | the public key used by the user (see below for more details on authentication)
 | byte[]   | signature        | the signature, used to check if the user has the private key (see below for more details on authentication)
 
@@ -234,8 +234,8 @@ This packet is sent to create a game.
 | type     | name             | description
 |----------|------------------|-------------
 | string   | name             | the name of the game
-| byte     | players          | the maximal amount of players
-| Role[]   | characters       | the different characters involved in this game
+| byte     | players          | the maximal amount of players
+| Role[]   | characters       | the different characters involved in this game
 
 ### 0xA2 : Join Game
 
@@ -243,7 +243,7 @@ This packet is sent to join a game
 
 | type  | name    | description
 |-------|---------|---------------
-| int   | gameId  | the id of the game to join
+| int   | gameId  | the id of the game to join
 
 ### 0xA3 : Vote
 
@@ -251,7 +251,7 @@ This packet is sent to vote (in a vote started by 0x0A)
 
 | type   | name   | description
 |------- |--------|---------------
-| int    | voteId | the id of the vote
+| int    | voteId | the id of the vote
 | string | choice | the value of the vote
 
 ### 0xA4 : Refresh game list
@@ -268,3 +268,4 @@ In game, only players can send messages, and only during the day. If a player is
 | type   | name    | description
 |------- |---------|---------------
 | string | message | the message to send
+
