@@ -107,7 +107,7 @@ public abstract class Vote extends Task {
 	}
 
 	private void broadcastPacket(Packet packet) {
-		players.forEach(player -> player.getClient().sendPacket(packet));
+		players.forEach(player -> player.sendPacket(packet));
 	}
 
 	public void handle(VotePacket packet, GamePlayer player) {
