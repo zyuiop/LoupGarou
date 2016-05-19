@@ -3,6 +3,7 @@ package net.zyuiop.loupgarou.server.utils;
 import com.google.common.collect.Lists;
 import net.zyuiop.loupgarou.game.tasks.Task;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -16,7 +17,7 @@ public class MultiTask extends Task {
 	}
 
 	public MultiTask(Task... tasks) {
-		this(Lists.newArrayList(tasks));
+		this(Lists.newCopyOnWriteArrayList(Lists.newArrayList(tasks)));
 	}
 
 	@Override
