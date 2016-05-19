@@ -291,8 +291,11 @@ public class GameWindow extends Stage {
 		VoteHolder pane = new VoteHolder(packet);
 		voteMap.put(packet.getVoteId(), pane);
 		votes.getChildren().add(pane.getVotePane());
-		if (packet.getVoters().length > 1)
+		if (packet.getVoters().length > 1) {
 			voteValues.getPanes().add(pane.getValuePane());
+			if (voteValues.getExpandedPane() == null)
+				voteValues.setExpandedPane(pane.getValuePane());
+		}
 	}
 
 	public void finishVote(VoteEndPacket packet) {
