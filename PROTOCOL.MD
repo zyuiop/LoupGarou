@@ -1,7 +1,7 @@
 Protocol Documentation
 ======================
 
-Current protocol version : 3
+Current protocol version : 4
 
 ## Some types definitions :
 
@@ -212,8 +212,17 @@ Sent when a vote starts
 | string   | chooseReason     | the "name" of the vote (example : choose a role [for the thief], do you want to heal this player ? [for the witch])
 | int      | chooseTime       | the time (in seconds) you have to vote
 | string[] | availableChoices | the list of the choices available in this vote
+| string[] | voters           | the list of the players who can vote for this vote
 
-## Client -> Server
+### 0x0C : Vote value
+
+Sent to all the voters when a player votes for a value
+
+| type   | name             | description
+|--------|------------------|-------------
+| int    | voteId           | the id of the vote
+| string | votingPlayer     | the player who voted
+| string | vote             | the value of the player vote
 
 ### 0x00 : Login
 

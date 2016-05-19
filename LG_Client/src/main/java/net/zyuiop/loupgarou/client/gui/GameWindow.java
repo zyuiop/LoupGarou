@@ -19,10 +19,7 @@ import net.zyuiop.loupgarou.game.GameState;
 import net.zyuiop.loupgarou.game.Role;
 import net.zyuiop.loupgarou.game.tasks.RepeatableTask;
 import net.zyuiop.loupgarou.game.tasks.TaskManager;
-import net.zyuiop.loupgarou.protocol.packets.clientbound.GameJoinConfirmPacket;
-import net.zyuiop.loupgarou.protocol.packets.clientbound.SetPlayersPacket;
-import net.zyuiop.loupgarou.protocol.packets.clientbound.VoteEndPacket;
-import net.zyuiop.loupgarou.protocol.packets.clientbound.VoteRequestPacket;
+import net.zyuiop.loupgarou.protocol.packets.clientbound.*;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.JoinGamePacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.SendMessagePacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.VotePacket;
@@ -40,7 +37,8 @@ public class GameWindow extends Stage {
 	private final VBox           mainArea;
 	private final VBox           players;
 	private final VBox           votes;
-	private final Map<Integer, VotePane> voteMap = new HashMap<>();
+	private final Accordion voteValues;
+	private final Map<Integer, VoteHolder> voteMap = new HashMap<>();
 	private final Label     roomNameLabel;
 	private final Label     hostLabel;
 	private final Label     stateLabel;
@@ -113,8 +111,17 @@ public class GameWindow extends Stage {
 
 	private Pane setupRightSide() {
 		players.getChildren().clear();
+		voteValues.getPanes().clear();
 
-		return players;
+		Label firstLabel = new Label("Votes des joueurs");
+		firstLabel.setFont(Font.font(firstLabel.getFont().getFamily(), FontWeight.BOLD, 15));
+
+		VBox right = new VBox(players, new Separator(Orientation.HORIZONTAL), firstLabel, voteValues);
+		right.setPadding(new Insets(10, 10, 10, 5));
+		right.setSpacing(7);
+		right.setMaxHeight(Double.MAX_VALUE);
+
+		return right;
 	}
 
 	private void setupWindow() {
@@ -158,6 +165,7 @@ public class GameWindow extends Stage {
 		roleLabel = new Label();
 		gameState = new VBox();
 		votes = new VBox();
+		voteValues = new Accordion();
 
 		players = new VBox();
 		players.setSpacing(3);
@@ -280,24 +288,75 @@ public class GameWindow extends Stage {
 	}
 
 	public void startVote(VoteRequestPacket packet) {
-		VotePane pane = new VotePane(packet);
+		VoteHolder pane = new VoteHolder(packet);
 		voteMap.put(packet.getVoteId(), pane);
-		votes.getChildren().add(pane);
+		votes.getChildren().add(pane.getVotePane());
+		if (packet.getVoters().length > 1)
+			voteValues.getPanes().add(pane.getValuePane());
 	}
 
 	public void finishVote(VoteEndPacket packet) {
 		if (voteMap.containsKey(packet.getVoteId())) {
-			VotePane pane = voteMap.remove(packet.getVoteId());
-			votes.getChildren().remove(pane);
-			pane.remove();
+			VoteHolder holder = voteMap.remove(packet.getVoteId());
+			votes.getChildren().remove(holder.getVotePane());
+			voteValues.getPanes().remove(holder.getValuePane());
+			holder.remove();
+		}
+	}
+
+	public void voteValue(VoteValuePacket packet) {
+		if (!Platform.isFxApplicationThread()) {
+			Platform.runLater(() -> voteValue(packet));
+			return;
+		}
+
+		if (voteMap.containsKey(packet.getId())) {
+			VoteHolder holder = voteMap.get(packet.getId());
+			holder.getValuePane().setVote(packet.getVotingPlayer(), packet.getVote());
+		}
+	}
+
+	private class VoteHolder {
+		private final VotePane pane;
+		private final VoteValuePane value;
+		private final RepeatableTask task;
+
+		private VoteHolder(VoteRequestPacket packet) {
+			this.pane = new VotePane(packet);
+			this.value = new VoteValuePane(packet);
+
+			task = new RepeatableTask(1, 1) {
+				private int time = packet.getChooseTime();
+
+				@Override
+				public void run() {
+					time--;
+					if (time == 0)
+						cancel();
+					Platform.runLater(() -> pane.voteLabel.setText("Temps restant pour voter : " + time));
+				}
+			};
+			TaskManager.submit(task);
+		}
+
+		public VoteValuePane getValuePane() {
+			return value;
+		}
+
+		public VotePane getVotePane() {
+			return pane;
+		}
+
+		public void remove() {
+			task.cancel();
 		}
 	}
 
 	private class VotePane extends TitledPane {
-		private RepeatableTask task;
+		private final Label voteLabel;
 
 		public VotePane(VoteRequestPacket packet) {
-			Label voteLabel = new Label("Temps restant pour voter : " + packet.getChooseTime());
+			voteLabel = new Label("Temps restant pour voter : " + packet.getChooseTime());
 			ChoiceBox<String> choiceBox = new ChoiceBox<>(FXCollections.observableArrayList(packet.getAvailableChoices()));
 			choiceBox.setValue(packet.getAvailableChoices()[0]);
 			setText(packet.getChooseReason());
@@ -313,29 +372,39 @@ public class GameWindow extends Stage {
 					return;
 
 				networkManager.send(new VotePacket(packet.getVoteId(), choiceBox.getValue()));
-				// TODO : disable until voteconfirm
 			});
 
 			VBox vBox = new VBox(voteLabel, choiceline, button);
 			vBox.setSpacing(5);
 			setContent(vBox);
+		}
+	}
 
-			task = new RepeatableTask(1, 1) {
-				private int time = packet.getChooseTime();
+	private class VoteValuePane extends TitledPane {
+		private Map<String, Label> playersLabels = new HashMap<>();
 
-				@Override
-				public void run() {
-					time--;
-					if (time == 0)
-						cancel();
-					Platform.runLater(() -> voteLabel.setText("Temps restant pour voter : " + time));
-				}
-			};
-			TaskManager.submit(task);
+		public VoteValuePane(VoteRequestPacket packet) {
+			setText(packet.getChooseReason());
+
+			Label firstLabel = new Label("Votes des autres joueurs :");
+			firstLabel.setFont(Font.font(firstLabel.getFont().getFamily(), FontWeight.SEMI_BOLD, firstLabel.getFont().getSize()));
+
+			VBox vBox = new VBox(firstLabel);
+			vBox.setSpacing(5);
+
+			for (String player : packet.getVoters()) {
+				Label label = new Label(player + " -> (x)");
+				vBox.getChildren().add(label);
+				playersLabels.put(player, label);
+			}
+
+			setContent(vBox);
 		}
 
-		public void remove() {
-			task.cancel();
+		public void setVote(String player, String vote) {
+			if (playersLabels.containsKey(player)) {
+				playersLabels.get(player).setText(player + " -> " + vote);
+			}
 		}
 	}
 }

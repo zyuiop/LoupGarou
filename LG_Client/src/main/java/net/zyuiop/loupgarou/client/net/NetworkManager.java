@@ -79,6 +79,7 @@ public class NetworkManager {
 		ProtocolHandler.handle(GameLeavePacket.class, new GameLeaveHandler(this));
 		ProtocolHandler.handle(VoteRequestPacket.class, new VoteHandler(this));
 		ProtocolHandler.handle(VoteEndPacket.class, new VoteEndHandler(this));
+		ProtocolHandler.handle(VoteValuePacket.class, new VoteValueHandler(this));
 	}
 
 	private void authentificate() {

@@ -11,15 +11,17 @@ public class VoteRequestPacket extends Packet {
 	private String   chooseReason;
 	private int      chooseTime;
 	private String[] availableChoices;
+	private String[] voters;
 
 	public VoteRequestPacket() {
 	}
 
-	public VoteRequestPacket(int voteId, String chooseReason, int chooseTime, String[] availableChoices) {
+	public VoteRequestPacket(int voteId, String chooseReason, int chooseTime, String[] availableChoices, String[] voters) {
 		this.voteId = voteId;
 		this.chooseReason = chooseReason;
 		this.chooseTime = chooseTime;
 		this.availableChoices = availableChoices;
+		this.voters = voters;
 	}
 
 	public String getChooseReason() {
@@ -38,12 +40,17 @@ public class VoteRequestPacket extends Packet {
 		return availableChoices;
 	}
 
+	public String[] getVoters() {
+		return voters;
+	}
+
 	@Override
 	public void read(PacketData byteBuf) {
 		voteId = byteBuf.readInt();
 		chooseReason = byteBuf.readString();
 		chooseTime = byteBuf.readInt();
 		availableChoices = byteBuf.readArray(String.class, byteBuf::readString);
+		voters = byteBuf.readArray(String.class, byteBuf::readString);
 	}
 
 	@Override
@@ -52,5 +59,6 @@ public class VoteRequestPacket extends Packet {
 		byteBuf.writeString(chooseReason);
 		byteBuf.writeInt(chooseTime);
 		byteBuf.writeArray(availableChoices, byteBuf::writeString);
+		byteBuf.writeArray(voters, byteBuf::writeString);
 	}
 }

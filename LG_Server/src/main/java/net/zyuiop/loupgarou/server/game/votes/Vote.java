@@ -6,6 +6,7 @@ import net.zyuiop.loupgarou.protocol.network.MessageType;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.MessagePacket;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.VoteEndPacket;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.VoteRequestPacket;
+import net.zyuiop.loupgarou.protocol.packets.clientbound.VoteValuePacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.VotePacket;
 import net.zyuiop.loupgarou.server.LGServer;
 import net.zyuiop.loupgarou.server.game.GamePlayer;
@@ -17,6 +18,7 @@ import net.zyuiop.loupgarou.game.tasks.TaskManager;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * @author zyuiop
@@ -85,7 +87,7 @@ public abstract class Vote extends Task {
 	@Override
 	public void run() {
 		LGServer.getLogger().info("Running vote " + id + " !");
-		broadcastPacket(new VoteRequestPacket(id, name, time, availableChoices)); // broadcast packet
+		broadcastPacket(new VoteRequestPacket(id, name, time, availableChoices, players.stream().map(GamePlayer::getName).toArray(String[]::new))); // broadcast packet
 		TaskManager.submit(timerTask);
 	}
 
@@ -132,6 +134,8 @@ public abstract class Vote extends Task {
 		player.sendMessage(MessageType.SYSTEM, "Vote pris en compte.");
 		if (players.size() > 1)
 			broadcastPacket(new MessagePacket(MessageType.GAME, player.getName() + " vote pour " + packet.getVote() + "."));
+
+		broadcastPacket(new VoteValuePacket(id, player.getName(), packet.getVote()));
 
 		if (votations.size() == players.size()) {
 			endVote();

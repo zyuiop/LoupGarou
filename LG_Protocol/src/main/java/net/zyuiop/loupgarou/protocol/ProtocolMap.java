@@ -9,7 +9,7 @@ import net.zyuiop.loupgarou.protocol.packets.serverbound.*;
  * @author zyuiop
  */
 public class ProtocolMap {
-	public static int protocolVersion = 3;
+	public static int protocolVersion = 4;
 	private static BiMap<Integer, Class<? extends Packet>> protocolMap = HashBiMap.create();
 
 	static {
@@ -26,6 +26,7 @@ public class ProtocolMap {
 		protocolMap.put(0x09, SetPlayersPacket.class);
 		protocolMap.put(0x0A, VoteEndPacket.class);
 		protocolMap.put(0x0B, VoteRequestPacket.class);
+		protocolMap.put(0x0C, VoteValuePacket.class);
 
 		protocolMap.put(0xA1, CreateGamePacket.class);
 		protocolMap.put(0xA2, JoinGamePacket.class);
