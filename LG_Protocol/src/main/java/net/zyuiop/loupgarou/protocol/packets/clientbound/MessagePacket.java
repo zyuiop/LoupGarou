@@ -3,14 +3,20 @@ package net.zyuiop.loupgarou.protocol.packets.clientbound;
 import net.zyuiop.loupgarou.protocol.Packet;
 import net.zyuiop.loupgarou.protocol.PacketData;
 import net.zyuiop.loupgarou.protocol.network.MessageType;
+import net.zyuiop.loupgarou.protocol.utils.MessageModifier;
 
 /**
  * @author zyuiop
  */
 public class MessagePacket extends Packet {
-	private MessageType type;
-	private String      sender;
-	private String      message;
+	private MessageType     type;
+	private String          sender;
+	private String          message;
+	private boolean customStyle = false;
+	private MessageModifier modifier;
+	private short red = -1;
+	private short green = -1;
+	private short blue = -1;
 
 	public MessagePacket() {
 	}
@@ -26,12 +32,40 @@ public class MessagePacket extends Packet {
 		this.message = message;
 	}
 
+	public MessagePacket(MessageType type, String message, MessageModifier modifier, short red, short green, short blue) {
+		this.type = type;
+		this.message = message;
+		this.customStyle = true;
+		this.modifier = modifier;
+		this.red = red;
+		this.green = green;
+		this.blue = blue;
+	}
+
+	public MessagePacket(MessageType type, String sender, String message, MessageModifier modifier, short red, short green, short blue) {
+		this.type = type;
+		this.message = message;
+		this.customStyle = true;
+		this.modifier = modifier;
+		this.red = red;
+		this.green = green;
+		this.blue = blue;
+	}
+
 	@Override
 	public void read(PacketData byteBuf) {
 		type = MessageType.valueOf(byteBuf.readString());
 		if (type == MessageType.USER)
 			sender = byteBuf.readString();
 		message = byteBuf.readString();
+		customStyle = byteBuf.readBoolean();
+
+		if (customStyle) {
+			modifier = byteBuf.readEnum(MessageModifier.class);
+			red = byteBuf.readUnsignedByte();
+			green = byteBuf.readUnsignedByte();
+			blue = byteBuf.readUnsignedByte();
+		}
 	}
 
 	@Override
@@ -40,6 +74,14 @@ public class MessagePacket extends Packet {
 		if (type == MessageType.USER)
 			byteBuf.writeString(sender);
 		byteBuf.writeString(message);
+		byteBuf.writeBoolean(customStyle);
+
+		if (customStyle) {
+			byteBuf.writeEnum(modifier);
+			byteBuf.writeShort(red);
+			byteBuf.writeShort(green);
+			byteBuf.writeShort(blue);
+		}
 	}
 
 	public MessageType getType() {
@@ -54,4 +96,23 @@ public class MessagePacket extends Packet {
 		return message;
 	}
 
+	public MessageModifier getModifier() {
+		return modifier;
+	}
+
+	public short getRed() {
+		return red;
+	}
+
+	public short getGreen() {
+		return green;
+	}
+
+	public short getBlue() {
+		return blue;
+	}
+
+	public boolean isCustomStyle() {
+		return customStyle;
+	}
 }

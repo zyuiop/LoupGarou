@@ -2,8 +2,10 @@ package net.zyuiop.loupgarou.server.game.phases;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import net.zyuiop.loupgarou.game.Role;
 import net.zyuiop.loupgarou.protocol.network.MessageType;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.MessagePacket;
+import net.zyuiop.loupgarou.protocol.utils.MessageModifier;
 import net.zyuiop.loupgarou.server.LGServer;
 import net.zyuiop.loupgarou.server.game.Game;
 import net.zyuiop.loupgarou.server.game.GamePlayer;
@@ -105,7 +107,17 @@ public class DayPhase extends GamePhase {
 								game.sendToAll(new MessagePacket(MessageType.GAME, "Le joueur désigné ne semble plus exister... Étrange..."));
 								LGServer.getLogger().info("Error in game " + game.getGameInfo().getGameName() + " ! Player designated " + designated + " is no longer playing !");
 							} else {
-								game.sendToAll(new MessagePacket(MessageType.GAME, "La victime désignée est " + designated + " (" + player.getRole().getName() + ") !"));
+								Role role = player.getRole();
+								game.sendToAll(new MessagePacket(MessageType.GAME, "La victime désignée est " + designated + " (" + role.getName() + ") !"));
+								if (role == Role.ANCIENT) {
+									game.sendToAll(new MessagePacket(MessageType.GAME, "Vous avez tué l'ancien ! Vous perdez tous vos pouvoirs.", MessageModifier.BOLD, (short) 0xB9, (short) 0x12, (short) 0x1B));
+									game.setAncientDead(true);
+								} else if (role == Role.ANGEL && game.checkAngel()) {
+									game.sendToAll(new MessagePacket(MessageType.GAME, "Vous avez tué l'ange ! Celui ci gagne la partie.", MessageModifier.BOLD, (short) 0xB9, (short) 0x12, (short) 0x1B));
+									player.sendPacket(new MessagePacket(MessageType.GAME, "Vous remportez la partie !", MessageModifier.BOLD, (short) 0x8F, (short) 0xCF, (short) 0x3C));
+									game.win();
+									return;
+								}
 								game.stumpPlayer(player, DayPhase.this);
 							}
 						}

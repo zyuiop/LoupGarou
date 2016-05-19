@@ -38,6 +38,7 @@ public class Game {
 	private Set<GamePlayer> otherVictims    = Sets.newHashSet();
 	private GamePlayer      mayor           = null;
 	private String          protectedPlayer = null;
+	private boolean         isAncientDead   = false;
 
 	protected Game(int gameId, GameConfig config) {
 		this.gameId = gameId;
@@ -182,11 +183,23 @@ public class Game {
 	}
 
 	public boolean checkWin() {
+
+
 		if (getPlayers(Role.WOLF).size() == 0) {
 			sendToAll(new MessagePacket(MessageType.GAME, "Victoire du village !"));
 			return true;
-		} else if (getPlayersExcepted(Role.WOLF).size() == 0) {
+		} else if (getPlayersExcepted(Role.WHITE_WOLF).size() < 2) {
+			sendToAll(new MessagePacket(MessageType.GAME, "Victoire du Loup Blanc !"));
+			return true;
+		} else if (getPlayersExcepted(Role.WOLF, Role.WHITE_WOLF).size() == 0) {
 			sendToAll(new MessagePacket(MessageType.GAME, "Victoire des Loups !"));
+			sendToAll(new MessagePacket(MessageType.GAME, "Vous perdez la partie ! (victoire des loups)"), Role.WHITE_WOLF);
+			return true;
+		} else if (players.size() == 2 && players.get(0).getLover() != null && players.get(0).getLover().equals(players.get(1))) {
+			String p1 = players.get(0) + " (" + players.get(0).getRole().getName() + ")";
+			String p2 = players.get(1) + " (" + players.get(1).getRole().getName() + ")";
+
+			sendToAll(new MessagePacket(MessageType.GAME, "Victoire des deux amoureux : " + p1 + " et " + p2));
 			return true;
 		}
 		return false;
@@ -199,6 +212,14 @@ public class Game {
 		if (!checkWin())
 			return false;
 
+		win();
+		return true;
+	}
+
+	public void win() {
+		if (state == GameState.FINISHED)
+			return;
+
 		TaskManager.submit(new DelayedTask(30) {
 			@Override
 			public void run() {
@@ -206,7 +227,6 @@ public class Game {
 			}
 		});
 		setState(GameState.FINISHED);
-		return true;
 	}
 
 	private void runPreNight() {
@@ -353,8 +373,8 @@ public class Game {
 						player.sendPacket(new MessagePacket(MessageType.SYSTEM, "Vous ne pouvez pas envoyer de message pendant cette phase de jeu !"));
 						break;
 					case NIGHT:
-						if (player.getRole() == Role.WOLF) {
-							sendToAll(new MessagePacket(MessageType.USER, player.getName(), message), Role.WOLF);
+						if (player.getRole() == Role.WOLF || player.getRole() == Role.WHITE_WOLF) {
+							sendToAll(new MessagePacket(MessageType.USER, player.getName(), message), Role.WOLF, Role.WHITE_WOLF);
 							sendToAll(new MessagePacket(MessageType.USER, "Loup", message), Role.LITTLE_GIRL);
 						} else {
 							player.sendPacket(new MessagePacket(MessageType.SYSTEM, "Vous ne pouvez pas envoyer de message pendant cette phase de jeu !"));
@@ -385,5 +405,23 @@ public class Game {
 
 	public void setProtectedPlayer(String protectedPlayer) {
 		this.protectedPlayer = protectedPlayer;
+	}
+
+	public boolean isAncientDead() {
+		return isAncientDead;
+	}
+
+	public void setAncientDead(boolean ancientDead) {
+		isAncientDead = ancientDead;
+	}
+
+	private boolean firstTurn = true;
+
+	public boolean checkAngel() {
+		if (firstTurn) {
+			firstTurn = false;
+			return true;
+		}
+		return false;
 	}
 }

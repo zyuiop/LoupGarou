@@ -14,6 +14,9 @@ public class RoleDatas {
 
 	static {
 		roleClassMap.put(Role.WITCH, WitchData.class);
+		roleClassMap.put(Role.SAVER, SaverData.class);
+		roleClassMap.put(Role.WHITE_WOLF, WhiteWolfData.class);
+		roleClassMap.put(Role.ANCIENT, AncientData.class);
 	}
 
 	public static RoleData create(Role role) {

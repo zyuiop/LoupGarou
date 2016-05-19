@@ -26,6 +26,9 @@ public class SaverCharacter extends Character {
 
 	@Override
 	public void run() {
+		if (game.isAncientDead())
+			return;
+
 		Collection<GamePlayer> savers = game.getPlayers(Role.SAVER);
 		if (savers.size() > 0) {
 			GamePlayer saver = savers.iterator().next();

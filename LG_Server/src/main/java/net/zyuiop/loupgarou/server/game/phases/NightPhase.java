@@ -2,6 +2,7 @@ package net.zyuiop.loupgarou.server.game.phases;
 
 import net.zyuiop.loupgarou.game.Role;
 import net.zyuiop.loupgarou.server.game.Game;
+import net.zyuiop.loupgarou.server.game.characters.Character;
 import net.zyuiop.loupgarou.server.game.characters.Characters;
 
 /**

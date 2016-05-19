@@ -1,7 +1,7 @@
 Protocol Documentation
 ======================
 
-Current protocol version : 2
+Current protocol version : 3
 
 ## Some types definitions :
 
@@ -75,6 +75,15 @@ The `index` value is used in the packet. It is always encoded as a byte.
 | 2     | Game : game related messages (i.e: kills, role attributions...)
 | 3     | Error : error messages, displayed in an Alert modal in the original client
 
+#### MessageModifier
+
+| index | description
+|-------|--------------
+| 0     | Normal : message is show normally
+| 1     | Bold : message is displayed in bold
+| 2     | Italic : message is displayed in italic
+| 3     | Bold and italic : message is displayed in bold and italic
+
 #### Role
 
 | index | name
@@ -88,6 +97,9 @@ The `index` value is used in the packet. It is always encoded as a byte.
 | 7     | Little girl
 | 8     | Thief
 | 9     | Saver *(Salvateur)*
+| 10    | White wolf
+| 11    | Elder
+| 12    | Angel
 
 
 ## Packet structure
@@ -143,6 +155,11 @@ Sent by the server to display a message to the client
 | MessageType | type    | the type of the message
 | string      | sender  | sender of the message **(sent only if type is User)**
 | string      | message | the message to display
+| boolean     | customStyle | if false, none of the following fields are sent
+| MessaageModifier | modifier | defines the way the message should be displayed
+| byte        | red     | red color component
+| byte        | green   | green color component
+| byte        | blue    | blue color component
 
 ### 0x06 : Set Phase
 

@@ -24,6 +24,9 @@ public class WitchCharacter extends Character {
 
 	@Override
 	public void run() {
+		if (game.isAncientDead())
+			return;
+
 		Collection<GamePlayer> witches = game.getPlayers(Role.WITCH);
 		if (witches.size() > 0) {
 			GamePlayer witch = witches.iterator().next();
@@ -37,7 +40,7 @@ public class WitchCharacter extends Character {
 			if (!data.isHealthPotionUsed()) {
 				GamePlayer dead = game.getNextVictim();
 				if (dead != null) {
-					votes.add(new Vote(30, "Réanimer " + dead.getName() + " ?", witches, new String[]{"Oui", "Non"}) {
+					votes.add(new Vote(45, "Réanimer " + dead.getName() + " ?", witches, new String[]{"Oui", "Non"}) {
 						@Override
 						protected void handleResults(Map<GamePlayer, String> results) {
 							if (results.size() > 0 && results.values().iterator().next().equalsIgnoreCase("oui")) {
@@ -64,7 +67,7 @@ public class WitchCharacter extends Character {
 
 				if (names.size() > 0) {
 					names.add("Personne");
-					votes.add(new Vote(30, "Tuer une personne", witches, names) {
+					votes.add(new Vote(45, "Tuer une personne", witches, names) {
 						@Override
 						protected void handleResults(Map<GamePlayer, String> results) {
 							if (results.size() > 0) {

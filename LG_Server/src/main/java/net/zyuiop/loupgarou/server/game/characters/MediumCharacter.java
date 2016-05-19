@@ -21,6 +21,9 @@ public class MediumCharacter extends Character {
 
 	@Override
 	public void run() {
+		if (game.isAncientDead())
+			return;
+
 		Collection<GamePlayer> mediums = game.getPlayers(Role.MEDIUM);
 		if (mediums.size() == 0) {
 			complete();
