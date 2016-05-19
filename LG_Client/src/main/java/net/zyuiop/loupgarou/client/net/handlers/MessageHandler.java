@@ -38,7 +38,6 @@ public class MessageHandler implements PacketHandler<MessagePacket> {
 			label = new Label(msg);
 			label.setFont(Font.font(label.getFont().getFamily(), FontWeight.BOLD, label.getFont().getSize()));
 			label.setTextFill(Color.web("#993928"));
-			manager.getGameWindow().writeText(label);
 		} else if (packet.getType() == MessageType.USER) {
 			msg = "(" + packet.getSender() + ") " + packet.getMessage();
 		} else {
