@@ -113,6 +113,16 @@ public class HomeWindow extends Stage {
 		create.setMaxWidth(Double.MAX_VALUE);
 		create.setOnMouseClicked(event -> {
 			String nameVal = name.getText();
+			if (villagers.getText().length() == 0) {
+				new Alert(Alert.AlertType.WARNING, "Merci de donner un nombre de villageois ! (0 ou plus)", new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE)).show();
+				return;
+			}
+
+			if (maxWolves.getText().length() == 0) {
+				new Alert(Alert.AlertType.WARNING, "Merci de donner un nombre de loups ! (1 ou plus)", new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE)).show();
+				return;
+			}
+
 			short maxVillagers = Short.parseShort(villagers.getText());
 			int maxWolf = Integer.parseInt(maxWolves.getText());
 			List<Role> selectedRoles = roles.getSelectionModel().getSelectedItems();
