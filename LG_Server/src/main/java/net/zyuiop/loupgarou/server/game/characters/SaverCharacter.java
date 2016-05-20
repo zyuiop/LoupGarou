@@ -3,6 +3,7 @@ package net.zyuiop.loupgarou.server.game.characters;
 import net.zyuiop.loupgarou.game.Role;
 import net.zyuiop.loupgarou.game.tasks.Task;
 import net.zyuiop.loupgarou.protocol.network.MessageType;
+import net.zyuiop.loupgarou.protocol.packets.clientbound.MessagePacket;
 import net.zyuiop.loupgarou.server.LGServer;
 import net.zyuiop.loupgarou.server.game.Game;
 import net.zyuiop.loupgarou.server.game.GamePlayer;
@@ -38,6 +39,8 @@ public class SaverCharacter extends Character {
 				return;
 			}
 
+			game.sendToAll(new MessagePacket(MessageType.GAME, "Le salvateur se réveille..."));
+
 			Vote vote = new Vote(45, "Qui souhaitez vous protéger ?", savers, game
 					.getPlayers()
 					.stream()
@@ -56,7 +59,10 @@ public class SaverCharacter extends Character {
 				}
 			};
 
-			vote.setRunAfter(SaverCharacter.this::complete);
+			vote.setRunAfter(() -> {
+				game.sendToAll(new MessagePacket(MessageType.GAME, "Le salvateur se rendort..."));
+				SaverCharacter.this.complete();
+			});
 
 			vote.run();
 		} else {

@@ -29,7 +29,7 @@ public class CupidonCharacter extends Character {
 			Collection<String> others = game.getPlayers().stream().map(GamePlayer::getName).collect(Collectors.toList());
 			String[] choices = others.toArray(new String[others.size()]);
 
-			game.sendToAll(new MessagePacket(MessageType.GAME, "Cupdion désigne les deux amoureux..."));
+			game.sendToAll(new MessagePacket(MessageType.GAME, "Cupdion se réveille et désigne les deux amoureux..."));
 
 			CupidonVote first = new CupidonVote(60, "Premier amoureux", cupidon, choices);
 			CupidonVote second = new CupidonVote(60, "Second amoureux", cupidon, choices);
@@ -61,7 +61,10 @@ public class CupidonCharacter extends Character {
 						complete();
 				}
 			};
-			task.setRunAfter(CupidonCharacter.this::complete);
+			task.setRunAfter(() -> {
+				game.sendToAll(new MessagePacket(MessageType.GAME, "Cupidon se rendort..."));
+				CupidonCharacter.this.complete();
+			});
 			task.run();
 		} else {
 			complete();

@@ -367,7 +367,6 @@ public class Game {
 				sendToSpectators(new MessagePacket(MessageType.USER, player.getName(), message));
 			} else if (players.contains(player)) {
 				switch (phase) {
-					case PREPARATION:
 					case PRE_NIGHT:
 					case END_NIGHT:
 						player.sendPacket(new MessagePacket(MessageType.SYSTEM, "Vous ne pouvez pas envoyer de message pendant cette phase de jeu !"));
@@ -381,6 +380,7 @@ public class Game {
 						}
 						break;
 					case DAY:
+					case PREPARATION:
 						sendToAll(new MessagePacket(MessageType.USER, player.getName(), message));
 						break;
 				}

@@ -253,7 +253,6 @@ public class GameWindow extends Stage {
 			gameState.getChildren().add(phaseLabel);
 
 		switch (phase) {
-			case PREPARATION:
 			case PRE_NIGHT:
 			case END_NIGHT:
 				message.setDisable(true);
@@ -268,6 +267,7 @@ public class GameWindow extends Stage {
 					sendMessage.setDisable(true);
 				}
 				break;
+			case PREPARATION:
 			case DAY:
 				message.setDisable(false);
 				sendMessage.setDisable(false);

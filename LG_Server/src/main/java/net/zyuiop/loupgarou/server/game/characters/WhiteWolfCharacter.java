@@ -43,17 +43,22 @@ public class WhiteWolfCharacter extends Character {
 
 		List<String> available = Lists.newArrayList("Personne");
 		available.addAll(game.getPlayers(Role.WOLF).stream().map(GamePlayer::getName).collect(Collectors.toList()));
+		game.sendToAll(new MessagePacket(MessageType.GAME, "Le loup garou blanc se réveille..."));
 
 		if (available.size() == 1) {
 			wolf.sendMessage(MessageType.GAME, "Vous êtes le seul loup garou en vie, vous ne tuerez donc personne ce soir.");
-			return;
+			// On affiche quand même le vote pour le suspense
+		} else {
+			wolf.sendMessage(MessageType.GAME, "Vous êtes loup garou blanc, vous pouvez donc choisir de tuer un loup garou ce soir.");
 		}
 
-		wolf.sendMessage(MessageType.GAME, "Vous êtes loup garou blanc, vous pouvez donc choisir de tuer un loup garou ce soir.");
 
 		Vote vote = new Vote(45, "Désignez votre victime", wolves, available) {
 			@Override
 			protected void handleResults(Map<GamePlayer, String> results) {
+				if (available.size() == 1)
+					return;
+
 				if (results.size() == 0) {
 					wolf.sendMessage(MessageType.GAME, "Vous n'avez désigné aucun loup à tuer cette nuit.");
 				} else {
@@ -73,7 +78,10 @@ public class WhiteWolfCharacter extends Character {
 			}
 		};
 
-		vote.setRunAfter(WhiteWolfCharacter.this::complete);
+		vote.setRunAfter(() -> {
+			game.sendToAll(new MessagePacket(MessageType.GAME, "Le loup garou blanc se rendort..."));
+			WhiteWolfCharacter.this.complete();
+		});
 		vote.run();
 	}
 }

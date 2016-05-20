@@ -2,6 +2,7 @@ package net.zyuiop.loupgarou.server.game.characters;
 
 import net.zyuiop.loupgarou.game.Role;
 import net.zyuiop.loupgarou.protocol.network.MessageType;
+import net.zyuiop.loupgarou.protocol.packets.clientbound.MessagePacket;
 import net.zyuiop.loupgarou.server.LGServer;
 import net.zyuiop.loupgarou.server.game.Game;
 import net.zyuiop.loupgarou.server.game.GamePlayer;
@@ -30,6 +31,8 @@ public class MediumCharacter extends Character {
 			return;
 		}
 
+		game.sendToAll(new MessagePacket(MessageType.GAME, "La voyante se réveille..."));
+
 		GamePlayer medium = mediums.iterator().next();
 		Vote vote = new Vote(45, "Qui souhaitez vous observer ?", mediums, game.getPlayersExcepted(Role.MEDIUM).stream().map(GamePlayer::getName).collect(Collectors.toList())) {
 			@Override
@@ -53,7 +56,10 @@ public class MediumCharacter extends Character {
 			}
 		};
 
-		vote.setRunAfter(MediumCharacter.this::complete);
+		vote.setRunAfter(() -> {
+			game.sendToAll(new MessagePacket(MessageType.GAME, "La voyante se rendort..."));
+			MediumCharacter.this.complete();
+		});
 
 		vote.run();
 	}

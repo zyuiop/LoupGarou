@@ -36,6 +36,7 @@ public class ThiefCharacter extends Character {
 		}
 
 		thief = thieves.iterator().next();
+		game.sendToAll(new MessagePacket(MessageType.GAME, "Le voleur se réveille..."));
 		thief.sendMessage(MessageType.GAME, "Vous devez désormais choisir votre rôle");
 
 		BiMap<String, Role> roleBiMap = HashBiMap.create();
@@ -58,7 +59,10 @@ public class ThiefCharacter extends Character {
 			}
 		};
 
-		vote.setRunAfter(ThiefCharacter.this::complete);
+		vote.setRunAfter(() -> {
+			game.sendToAll(new MessagePacket(MessageType.GAME, "Le voleur se rendort..."));
+			ThiefCharacter.this.complete();
+		});
 		vote.run();
 	}
 }
