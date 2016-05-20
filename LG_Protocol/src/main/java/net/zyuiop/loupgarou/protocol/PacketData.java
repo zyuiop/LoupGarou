@@ -1,5 +1,6 @@
 package net.zyuiop.loupgarou.protocol;
 
+import com.google.common.base.Charsets;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufProcessor;
@@ -31,8 +32,8 @@ public class PacketData extends ByteBuf {
 			byteBuf.writeInt(0);
 			return;
 		}
-		byteBuf.writeInt(string.getBytes().length);
-		byteBuf.writeBytes(string.getBytes());
+		byteBuf.writeInt(string.getBytes(Charsets.UTF_8).length);
+		byteBuf.writeBytes(string.getBytes(Charsets.UTF_8));
 	}
 
 	public String readString() {
@@ -42,7 +43,7 @@ public class PacketData extends ByteBuf {
 
 		byte[] array = new byte[size];
 		byteBuf.readBytes(array);
-		return new String(array);
+		return new String(array, Charsets.UTF_8);
 	}
 
 	public <T extends Enum> T readEnum(Class<T> tClass) {
