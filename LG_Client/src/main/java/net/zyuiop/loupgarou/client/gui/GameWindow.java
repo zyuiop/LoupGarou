@@ -15,6 +15,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
+import net.zyuiop.loupgarou.client.LGClient;
 import net.zyuiop.loupgarou.client.net.NetworkManager;
 import net.zyuiop.loupgarou.game.GamePhase;
 import net.zyuiop.loupgarou.game.GameState;
@@ -47,9 +48,11 @@ public class GameWindow extends Stage {
 	private final Label     phaseLabel;
 	private final Label     roleLabel;
 	private final VBox      gameState;
+	private final VBox      presentRoles;
 	private final TextField message;
 	private final Button    sendMessage;
 	private Role role = null;
+	private Map<Role, Integer> roleMap = new HashMap<>();
 
 	private GameJoinConfirmPacket joinData;
 
@@ -93,7 +96,7 @@ public class GameWindow extends Stage {
 		return center;
 	}
 
-	private Pane setupLeftSide() {
+	private Pane setupLeftSide(boolean host) {
 		Label firstLabel = new Label("Êtat du jeu");
 		firstLabel.setFont(Font.font(firstLabel.getFont().getFamily(), FontWeight.BOLD, 15));
 
@@ -109,7 +112,23 @@ public class GameWindow extends Stage {
 			disconnect.setDisable(true);
 		});
 
-		VBox left = new VBox(gameState, disconnect, new Separator(Orientation.HORIZONTAL), votes);
+		Button edit = null;
+		if (host) {
+			edit = new Button("Modifier la composition");
+			HBox.setHgrow(edit, Priority.ALWAYS);
+			edit.setMaxWidth(Double.MAX_VALUE);
+			edit.setOnMouseClicked(event -> new EditGameWindow(GameWindow.this).show());
+		}
+
+		TitledPane pane = new TitledPane("Composition", presentRoles);
+		pane.setExpanded(false);
+		presentRoles.setSpacing(3);
+
+		VBox left = new VBox(gameState, pane, new Separator(Orientation.HORIZONTAL), disconnect);
+		if (edit != null)
+			left.getChildren().add(edit);
+		left.getChildren().addAll(new Separator(Orientation.HORIZONTAL), votes);
+
 		left.setPadding(new Insets(10, 5, 10, 10));
 		left.setSpacing(7);
 		left.setMaxHeight(Double.MAX_VALUE);
@@ -133,9 +152,9 @@ public class GameWindow extends Stage {
 		return right;
 	}
 
-	private void setupWindow() {
+	private void setupWindow(boolean host) {
 		BorderPane main = new BorderPane();
-		main.setLeft(setupLeftSide());
+		main.setLeft(setupLeftSide(host));
 		main.setCenter(setupMainArea());
 		main.setRight(setupRightSide());
 
@@ -174,6 +193,7 @@ public class GameWindow extends Stage {
 		phaseLabel = new Label();
 		roleLabel = new Label();
 		gameState = new VBox();
+		presentRoles = new VBox();
 		votes = new VBox();
 		voteValues = new Accordion();
 
@@ -189,7 +209,7 @@ public class GameWindow extends Stage {
 		RowConstraints row = new RowConstraints();
 		row.setPercentHeight(100);
 
-		setupWindow();
+		setupWindow(false);
 	}
 
 	public void writeText(String text) {
@@ -227,7 +247,7 @@ public class GameWindow extends Stage {
 
 	public void acceptGame(GameJoinConfirmPacket data) {
 		// Reset window
-		setupWindow();
+		setupWindow(data.getHoster().equals(networkManager.getName()));
 
 		// Load
 		this.joinData = data;
@@ -329,6 +349,40 @@ public class GameWindow extends Stage {
 		}
 	}
 
+	public void changeComposition(Role[] roles) {
+		if (!Platform.isFxApplicationThread()) {
+			Platform.runLater(() -> changeComposition(roles));
+			return;
+		}
+
+		// On considère la modif comme validée, s'il y en avait une en cours
+		EditGameWindow.closeCurrent();
+
+		Map<Role, Integer> amt = new HashMap<>();
+		for (Role role : roles) {
+			if (!amt.containsKey(role))
+				amt.put(role, 0);
+			amt.put(role, amt.get(role) + 1);
+		}
+
+		presentRoles.getChildren().clear();
+		Label first = new Label("Personnages de la partie :");
+		presentRoles.getChildren().add(first);
+		presentRoles.getChildren().addAll(
+				amt.entrySet().stream()
+						.map(entry -> new Label("- " + entry.getKey().getName() + ((entry.getValue() > 1) ? " (" + entry.getValue() + ")" : "")))
+						.collect(Collectors.toList()));
+
+		LGClient.logger.info("Received info " + amt.toString());
+
+		this.roleMap.clear();
+		this.roleMap.putAll(amt);
+	}
+
+	public NetworkManager getNetworkManager() {
+		return networkManager;
+	}
+
 	private class VoteHolder {
 		private final VotePane       pane;
 		private final VoteValuePane  value;
@@ -419,5 +473,9 @@ public class GameWindow extends Stage {
 				playersLabels.get(player).setText(player + " -> " + vote);
 			}
 		}
+	}
+
+	public Map<Role, Integer> getRoleMap() {
+		return roleMap;
 	}
 }

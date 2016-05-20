@@ -80,6 +80,7 @@ public class NetworkManager {
 		ProtocolHandler.handle(VoteRequestPacket.class, new VoteHandler(this));
 		ProtocolHandler.handle(VoteEndPacket.class, new VoteEndHandler(this));
 		ProtocolHandler.handle(VoteValuePacket.class, new VoteValueHandler(this));
+		ProtocolHandler.handle(SetGameCompositionPacket.class, new GameCompositionHandler(this));
 	}
 
 	private void authentificate() {

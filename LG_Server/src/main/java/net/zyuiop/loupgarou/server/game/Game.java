@@ -13,6 +13,7 @@ import net.zyuiop.loupgarou.protocol.Packet;
 import net.zyuiop.loupgarou.protocol.network.GameInfo;
 import net.zyuiop.loupgarou.protocol.network.MessageType;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.*;
+import net.zyuiop.loupgarou.server.LGServer;
 import net.zyuiop.loupgarou.server.game.phases.Phases;
 import net.zyuiop.loupgarou.server.game.phases.PreparationPhase;
 import net.zyuiop.loupgarou.server.game.tasks.HunterTask;
@@ -31,7 +32,7 @@ public class Game {
 	private GamePhase        phase      = null;
 	private List<GamePlayer> players    = new ArrayList<>();
 	private List<GamePlayer> spectators = new ArrayList<>();
-	private final GameConfig config;
+	private GameConfig config;
 
 	// Running variables
 	private GamePlayer      nextVictim      = null;
@@ -86,12 +87,17 @@ public class Game {
 		player.sendPacket(new SetPhasePacket(phase));
 		player.sendPacket(new SetStatePacket(state));
 		player.sendPacket(new SetPlayersPacket(config.getPlayers(), getPlayerList()));
+		player.sendPacket(new SetGameCompositionPacket(config.getExtendedCharacters()));
 		if (state == GameState.STARTED)
 			player.sendPacket(new SetRolePacket(player.getRole())); // todo : à voir
 	}
 
 	protected void broadcastPlayerChange() {
 		sendToAll(new SetPlayersPacket(config.getPlayers(), getPlayerList()));
+	}
+
+	protected void broadcastCompositionChange() {
+		sendToAll(new SetGameCompositionPacket(config.getExtendedCharacters()));
 	}
 
 	public void sendToPlayers(Packet packet) {
@@ -433,5 +439,15 @@ public class Game {
 
 	public GameState getState() {
 		return state;
+	}
+
+	public void setConfig(GameConfig config) {
+		this.config = config;
+		broadcastPlayerChange();
+		broadcastCompositionChange();
+	}
+
+	public GameConfig getConfig() {
+		return config;
 	}
 }

@@ -9,7 +9,7 @@ import net.zyuiop.loupgarou.protocol.packets.serverbound.*;
  * @author zyuiop
  */
 public class ProtocolMap {
-	public static int protocolVersion = 4;
+	public static int protocolVersion = 6;
 	private static BiMap<Integer, Class<? extends Packet>> protocolMap = HashBiMap.create();
 
 	static {
@@ -27,12 +27,14 @@ public class ProtocolMap {
 		protocolMap.put(0x0A, VoteEndPacket.class);
 		protocolMap.put(0x0B, VoteRequestPacket.class);
 		protocolMap.put(0x0C, VoteValuePacket.class);
+		protocolMap.put(0x0D, SetGameCompositionPacket.class);
 
 		protocolMap.put(0xA1, CreateGamePacket.class);
 		protocolMap.put(0xA2, JoinGamePacket.class);
 		protocolMap.put(0xA3, VotePacket.class);
 		protocolMap.put(0xA4, RefreshGameListPacket.class);
 		protocolMap.put(0xA5, SendMessagePacket.class);
+		protocolMap.put(0xA6, ChangeGameCompositionPacket.class);
 	}
 
 	public static Class<? extends Packet> getPacketFor(int packetId) throws NoSuckPacketException {

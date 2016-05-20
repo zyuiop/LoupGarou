@@ -1,7 +1,7 @@
 Protocol Documentation
 ======================
 
-Current protocol version : 5
+Current protocol version : 6
 
 ## Some types definitions :
 
@@ -226,6 +226,14 @@ Sent to all the voters when a player votes for a value
 | string | votingPlayer     | the player who voted
 | string | vote             | the value of the player vote
 
+### 0x0D : Game Composition
+
+Sent to a player when the game composition changes, and when the client joins a game
+
+| type   | name             | description
+|--------|------------------|-------------
+| Role[] | roles            | list of the available roles to play
+
 ### 0x00 : Login
 
 Sent after connecting to a server. Any packet sent before this packet will be refused an lead to the deconnexion of the client.
@@ -257,7 +265,7 @@ The timestamp is sent in milliseconds.
 
 ### 0xA1 : Create Game
 
-This packet is sent to create a game.
+This packet is sent to create a game
 
 | type     | name             | description
 |----------|------------------|-------------
@@ -299,3 +307,11 @@ In game, only players can send messages, and only during the day. If a player is
 |------- |---------|---------------
 | string | message | the message to send
 
+### 0xA6 : Edit composition
+
+This packet is sent to change the composition of the game the client is in
+
+| type     | name             | description
+|----------|------------------|-------------
+| byte     | players          | the maximal amount of players
+| Role[]   | characters       | the different characters involved in this game

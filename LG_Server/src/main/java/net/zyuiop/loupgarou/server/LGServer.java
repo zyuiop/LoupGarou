@@ -1,8 +1,5 @@
 package net.zyuiop.loupgarou.server;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -11,6 +8,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import net.zyuiop.loupgarou.protocol.ProtocolMap;
 import net.zyuiop.loupgarou.protocol.network.PacketDecoder;
 import net.zyuiop.loupgarou.protocol.network.PacketEncoder;
 import net.zyuiop.loupgarou.server.auth.AuthenticationService;
@@ -23,9 +21,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.security.NoSuchAlgorithmException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 /**
  * @author zyuiop
@@ -33,8 +28,8 @@ import java.util.concurrent.ThreadFactory;
 public class LGServer {
 	private static LGServer instance;
 	private static final Logger logger = LogManager.getRootLogger();
-	private final int port;
-	private AuthenticationService authenticationService;
+	private final int                   port;
+	private       AuthenticationService authenticationService;
 
 
 	LGServer() throws NoSuchAlgorithmException {
@@ -42,7 +37,7 @@ public class LGServer {
 		this.port = 2325;
 
 		// TODO read conf
-		logger.info("Starting LGServer on port " + port + "...");
+		logger.info("Starting LGServer on port " + port + " with protocol " + ProtocolMap.protocolVersion + "...");
 		authenticationService = new RSAAuthenticationService(new File(System.getProperty("user.dir") + "/users/"));
 		GamesManager.init();
 

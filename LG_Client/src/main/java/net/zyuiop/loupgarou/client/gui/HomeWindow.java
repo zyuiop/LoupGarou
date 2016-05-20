@@ -60,14 +60,14 @@ public class HomeWindow extends Stage {
 		PasswordField passwordField = new PasswordField();
 		passwordField.setPromptText("Mot de passe de la salle (facultatif)");
 
-		TextField maxPlayers = new TextField();
-		maxPlayers.setPromptText("Nombre de joueurs maximal");
-		maxPlayers.textProperty().addListener((observable, oldValue, newValue) -> {
+		TextField villagers = new TextField();
+		villagers.setPromptText("Nombre de villageois");
+		villagers.textProperty().addListener((observable, oldValue, newValue) -> {
 			try {
 				if (!newValue.matches("\\d*")) {
-					maxPlayers.setText(oldValue);
-				} else if (Integer.parseInt(newValue) > 255) {
-					maxPlayers.setText(oldValue);
+					villagers.setText(oldValue);
+				} else if (Integer.parseInt(newValue) > 100) {
+					villagers.setText(oldValue);
 				}
 			} catch (Exception e) {
 
@@ -109,12 +109,13 @@ public class HomeWindow extends Stage {
 		create.setMaxWidth(Double.MAX_VALUE);
 		create.setOnMouseClicked(event -> {
 			String nameVal = name.getText();
-			short maxPl = Short.parseShort(maxPlayers.getText());
+			short maxVillagers = Short.parseShort(villagers.getText());
 			int maxWolf = Integer.parseInt(maxWolves.getText());
 			List<Role> selectedRoles = roles.getSelectionModel().getSelectedItems();
-			int roleSize = selectedRoles.size();
+
+			int maxPl = maxVillagers + maxWolf + selectedRoles.size();
 			if (selectedRoles.contains(Role.THIEF))
-				roleSize -= 2;
+				maxPl -= 2;
 
 			String password = passwordField.getText();
 			if (password.length() == 0)
@@ -141,7 +142,7 @@ public class HomeWindow extends Stage {
 			for (int i = 0; i < maxWolf; i++)
 				r.add(Role.WOLF);
 
-			networkManager.send(new CreateGamePacket(nameVal, maxPl, r.toArray(new Role[r.size()]), password));
+			networkManager.send(new CreateGamePacket(nameVal, (short) maxPl, r.toArray(new Role[r.size()]), password));
 			//} TODO : uncomment to enable input check
 		});
 
@@ -151,9 +152,9 @@ public class HomeWindow extends Stage {
 		layout.add(name, 1, 1);
 		layout.add(new Label("Mot de passe"), 0, 2);
 		layout.add(passwordField, 1, 2);
-		layout.add(new Label("Joueurs"), 0, 3);
-		layout.add(maxPlayers, 1, 3);
-		layout.add(new Label("Loups"), 0, 4);
+		layout.add(new Label("Villageois"), 0, 3);
+		layout.add(villagers, 1, 3);
+		layout.add(new Label("Loup-Garous"), 0, 4);
 		layout.add(maxWolves, 1, 4);
 		layout.add(new Label("Personnages"), 0, 5);
 		layout.add(roles, 1, 5);

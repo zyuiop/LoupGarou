@@ -1,6 +1,7 @@
 package net.zyuiop.loupgarou.server.game;
 
 import net.zyuiop.loupgarou.game.Role;
+import net.zyuiop.loupgarou.server.LGServer;
 
 import java.util.Arrays;
 
@@ -55,6 +56,17 @@ public class GameConfig {
 
 	public Role[] getCharacters() {
 		return characters;
+	}
+
+	public Role[] getExtendedCharacters() {
+		Role[] array = new Role[characters.length + villagers];
+		int i = 0;
+		for (Role role : characters)
+			array[i++] = role;
+		while (i < array.length)
+			array[i++] = Role.VILLAGER;
+
+		return array;
 	}
 
 	@Override
