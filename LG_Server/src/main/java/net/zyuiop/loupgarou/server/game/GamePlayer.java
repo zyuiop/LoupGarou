@@ -5,6 +5,7 @@ import net.zyuiop.loupgarou.protocol.Packet;
 import net.zyuiop.loupgarou.protocol.network.MessageType;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.MessagePacket;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.SetRolePacket;
+import net.zyuiop.loupgarou.protocol.utils.Expirable;
 import net.zyuiop.loupgarou.server.LGServer;
 import net.zyuiop.loupgarou.server.game.roledata.RoleData;
 import net.zyuiop.loupgarou.server.game.roledata.RoleDatas;
@@ -14,6 +15,7 @@ import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author zyuiop
@@ -36,8 +38,8 @@ public class GamePlayer {
 	private final String          name;
 	private GamePlayer lover = null;
 	private Game game;
-	private Map<String, Object> attributes = new HashMap<>();
-	private Queue<Packet> packetQueue = new ArrayDeque<>(); // Bad idea ?
+	private Map<String, Object>      attributes  = new HashMap<>();
+	private Queue<Expirable<Packet>> packetQueue = new ArrayDeque<>();
 
 	private GamePlayer(String name) {
 		this.name = name;
@@ -50,10 +52,11 @@ public class GamePlayer {
 	public void setClient(ConnectedClient client) {
 		this.client = client;
 		while (packetQueue.size() > 0) {
-			Packet packet = packetQueue.poll();
-			if (packet != null)
+			Expirable<Packet> packet = packetQueue.poll();
+			Packet pack = (packet == null ? null : packet.getValue());
+			if (pack != null)
 				try {
-					sendPacket(packet);
+					sendPacket(pack);
 				} catch (Exception e) {
 					LGServer.getLogger().error("Error while sending " + packet.getClass() + " to " + getName(), e);
 				}
@@ -102,7 +105,7 @@ public class GamePlayer {
 		if (client != null) {
 			client.sendPacket(packet);
 		} else {
-			packetQueue.add(packet);
+			packetQueue.add(new Expirable<>(packet, 10, TimeUnit.MINUTES));
 		}
 	}
 
