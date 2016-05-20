@@ -93,6 +93,10 @@ public class GameWindow extends Stage {
 		center.setMaxHeight(Double.MAX_VALUE);
 		VBox.setVgrow(center, Priority.ALWAYS);
 
+		setOnCloseRequest(event -> {
+			Platform.exit();
+		});
+
 		return center;
 	}
 

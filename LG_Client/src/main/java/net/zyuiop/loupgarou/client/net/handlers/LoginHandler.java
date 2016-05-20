@@ -5,6 +5,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import net.zyuiop.loupgarou.client.LGClient;
+import net.zyuiop.loupgarou.client.gui.LoginWindow;
 import net.zyuiop.loupgarou.client.net.PacketHandler;
 import net.zyuiop.loupgarou.client.net.NetworkManager;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.LoginResponsePacket;
@@ -27,8 +28,8 @@ public class LoginHandler implements PacketHandler<LoginResponsePacket> {
 			Platform.runLater(() -> {
 				LGClient.logger.info("Error : " + packet.getErrorMessage());
 				Alert error = new Alert(Alert.AlertType.ERROR, "Une erreur s'est produite lors de la connexion :\n" + packet.getErrorMessage(), new ButtonType("Fermer", ButtonBar.ButtonData.CANCEL_CLOSE));
-				error.showAndWait();
-				System.exit(0);
+				error.show();
+				LoginWindow.getInstance().setConnecting(false);
 			});
 		}
 	}

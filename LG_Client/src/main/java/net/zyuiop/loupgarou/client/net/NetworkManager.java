@@ -10,17 +10,19 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import javafx.application.Platform;
 import javafx.stage.Stage;
-import net.zyuiop.loupgarou.client.auth.AuthenticationService;
 import net.zyuiop.loupgarou.client.LGClient;
+import net.zyuiop.loupgarou.client.auth.AuthenticationService;
 import net.zyuiop.loupgarou.client.gui.GameWindow;
 import net.zyuiop.loupgarou.client.gui.HomeWindow;
-import net.zyuiop.loupgarou.client.gui.LoginStatusWindow;
+import net.zyuiop.loupgarou.client.gui.LoginWindow;
 import net.zyuiop.loupgarou.client.net.handlers.*;
 import net.zyuiop.loupgarou.protocol.Packet;
 import net.zyuiop.loupgarou.protocol.network.PacketDecoder;
 import net.zyuiop.loupgarou.protocol.network.PacketEncoder;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.*;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.LoginPacket;
+
+import java.util.concurrent.TimeUnit;
 
 import static net.zyuiop.loupgarou.client.LGClient.logger;
 
@@ -32,9 +34,11 @@ public class NetworkManager {
 	private final String  ip;
 	private final int     port;
 	private       Channel channel;
-	private Stage currentStage = null;
-	private HomeWindow homeWindow;
-	private GameWindow gameWindow;
+	private boolean connected    = false;
+	private Stage   currentStage = null;
+	private HomeWindow     homeWindow;
+	private GameWindow     gameWindow;
+	private EventLoopGroup workerGroup;
 
 	public NetworkManager(String name, String ip, int port) {
 		this.name = name;
@@ -45,7 +49,7 @@ public class NetworkManager {
 	}
 
 	public void connect() throws Exception {
-		EventLoopGroup workerGroup = new NioEventLoopGroup();
+		workerGroup = new NioEventLoopGroup();
 		Bootstrap b = new Bootstrap(); // (1)
 		b.group(workerGroup); // (2)
 		b.channel(NioSocketChannel.class); // (3)
@@ -57,12 +61,10 @@ public class NetworkManager {
 			}
 		});
 
-		currentStage = new LoginStatusWindow();
-		currentStage.show();
-
 		// Start the client
 		channel = b.connect(ip, port).sync().channel();
 		logger.info("Connected to " + ip + ". Trying to login...");
+		LoginWindow.getInstance().setStatus("Authentification auprès de " + ip + ":" + port + "...");
 		initHandlers();
 		authentificate();
 	}
@@ -92,8 +94,10 @@ public class NetworkManager {
 
 	public void finishLogin() {
 		logger.info("Logged in !");
+		setConnected(true);
 		Platform.runLater(() -> {
-			currentStage.close();
+			if (currentStage != null)
+				currentStage.close();
 			initMainWindow();
 		});
 	}
@@ -110,7 +114,36 @@ public class NetworkManager {
 	}
 
 	public void stop() {
+		if (!Platform.isFxApplicationThread()) {
+			Platform.runLater(this::stop);
+			return;
+		}
 
+		if (homeWindow != null) {
+			homeWindow.close();
+			homeWindow = null;
+		}
+
+		if (gameWindow != null) {
+			gameWindow.close();
+			gameWindow = null;
+		}
+
+		if (channel != null && channel.isOpen()) {
+			channel.close();
+			channel = null;
+		}
+
+		if (workerGroup != null) {
+			try {
+				workerGroup.shutdownGracefully(500, 3000, TimeUnit.MILLISECONDS).sync();
+				workerGroup = null;
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+
+		LGClient.logger.info("Disconnected from " + ip);
 	}
 
 	public String getName() {
@@ -162,5 +195,20 @@ public class NetworkManager {
 			currentStage.close();
 		}
 		initMainWindow();
+	}
+
+	public boolean isConnected() {
+		return connected;
+	}
+
+	public void setConnected(boolean connected) {
+		if (connected) {
+			if (!Platform.isFxApplicationThread()) {
+				Platform.runLater(LoginWindow.getInstance()::close);
+			} else {
+				LoginWindow.getInstance().close();
+			}
+		}
+		this.connected = connected;
 	}
 }

@@ -1,7 +1,9 @@
 package net.zyuiop.loupgarou.client.gui;
 
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -14,22 +16,37 @@ import net.zyuiop.loupgarou.client.data.SavedServers;
  * @author zyuiop
  */
 public class LoginWindow extends Stage {
+	private static LoginWindow instance;
 	private final TableView<SavedServer> serversView;
 	private final LGClient               client;
 	private final SavedServers           manager;
+	private       Button                 connect;
+	private       Button                 directConnect;
+	private       Button                 deleteButton;
+	private Label status;
+	private       boolean                isConnecting;
 
 	public LoginWindow(LGClient client, SavedServers manager) {
 		this.client = client;
 		this.manager = manager;
+
+		instance = this;
 
 		setTitle("Loup Garou - Connexion");
 
 		serversView = new TableView<>();
 		serversView.setPrefHeight(150);
 
+		status = new Label("Prêt.");
+
+		VBox statusBar = new VBox(new Separator(Orientation.HORIZONTAL), status);
+		statusBar.setSpacing(5);
+		statusBar.setPadding(new Insets(5, 5, 5, 5));
+
 		BorderPane main = new BorderPane();
 		main.setRight(constructRightBox());
 		main.setLeft(constructLeftBox());
+		main.setBottom(statusBar);
 
 		serversView.getItems().addAll(manager.getServers());
 
@@ -58,7 +75,7 @@ public class LoginWindow extends Stage {
 		name.setPromptText("Pseudo");
 
 		Button create = new Button("Ajouter le serveur");
-		Button connect = new Button("Connexion directe");
+		connect = new Button("Connexion directe");
 
 		GridPane.setHgrow(create, Priority.ALWAYS);
 		GridPane.setFillWidth(create, true);
@@ -73,7 +90,10 @@ public class LoginWindow extends Stage {
 			serversView.getItems().add(server);
 		});
 
-		connect.setOnMouseClicked(event -> getServer(name, ip, port).connect(client));
+		connect.setOnMouseClicked(event -> {
+			setConnecting(true);
+			getServer(name, ip, port).connect(client);
+		});
 
 		GridPane layout = new GridPane();
 		layout.add(new Label("Nouveau serveur"), 0, 0, 4, 1);
@@ -141,22 +161,16 @@ public class LoginWindow extends Stage {
 				new ReadOnlyStringWrapper(param.getValue().getUsername())
 		);
 
-		Button deleteButton = new Button("Supprimer");
+		deleteButton = new Button("Supprimer");
 		deleteButton.setDisable(true);
 
-		Button connectButton = new Button("Rejoindre");
-		connectButton.setDisable(true);
+		directConnect = new Button("Rejoindre");
+		directConnect.setDisable(true);
 
 		serversView.getColumns().addAll(ipCol, portCol, nameCol);
 		serversView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		serversView.setOnMouseClicked(event -> {
-			if (serversView.getSelectionModel().getSelectedItem() == null) {
-				deleteButton.setDisable(true);
-				connectButton.setDisable(true);
-			} else {
-				deleteButton.setDisable(false);
-				connectButton.setDisable(false);
-			}
+			checkButtonEnable();
 		});
 
 		deleteButton.setOnMouseClicked(event -> {
@@ -168,22 +182,55 @@ public class LoginWindow extends Stage {
 			}
 		});
 
-		connectButton.setOnMouseClicked(event -> {
+		directConnect.setOnMouseClicked(event -> {
 			SavedServer selected = serversView.getSelectionModel().getSelectedItem();
 			if (selected != null) {
-				close(); // Ou pas ?
+				setConnecting(true);
 				selected.connect(client);
 			}
 		});
 
 		deleteButton.setMaxWidth(Double.MAX_VALUE);
-		connectButton.setMaxWidth(Double.MAX_VALUE);
+		directConnect.setMaxWidth(Double.MAX_VALUE);
 		HBox.setHgrow(deleteButton, Priority.ALWAYS);
-		HBox.setHgrow(connectButton, Priority.ALWAYS);
+		HBox.setHgrow(directConnect, Priority.ALWAYS);
 
-		HBox downBox = new HBox(10, deleteButton, connectButton);
+		HBox downBox = new HBox(10, deleteButton, directConnect);
 		VBox vBox = new VBox(10, serversView, downBox);
 		vBox.setPadding(new Insets(10, 10, 10, 5));
 		return vBox;
+	}
+
+	private void checkButtonEnable() {
+		if (serversView.getSelectionModel().getSelectedItem() == null || isConnecting) {
+			deleteButton.setDisable(true);
+			directConnect.setDisable(true);
+		} else {
+			deleteButton.setDisable(false);
+			directConnect.setDisable(false);
+		}
+	}
+
+	public void setConnecting(boolean connecting) {
+		isConnecting = connecting;
+		if (connecting) {
+			directConnect.setDisable(true);
+			connect.setDisable(true);
+		} else {
+			setStatus("Prêt.");
+			checkButtonEnable();
+			connect.setDisable(false);
+		}
+	}
+
+	public static LoginWindow getInstance() {
+		return instance;
+	}
+
+	public void setStatus(String text) {
+		if (!Platform.isFxApplicationThread())
+			Platform.runLater(() -> setStatus(text));
+		else
+			status.setText(text);
 	}
 }

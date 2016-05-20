@@ -51,6 +51,10 @@ public class HomeWindow extends Stage {
 		main.setRight(constructRightBox());
 		main.setLeft(constructLeftBox());
 		setScene(new Scene(main));
+
+		setOnCloseRequest(event -> {
+			Platform.exit();
+		});
 	}
 
 	private Pane constructLeftBox() {
