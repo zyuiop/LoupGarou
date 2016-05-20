@@ -445,6 +445,10 @@ public class Game {
 		this.config = config;
 		broadcastPlayerChange();
 		broadcastCompositionChange();
+
+		if (config.getPlayers() <= players.size()) {
+			start();
+		}
 	}
 
 	public GameConfig getConfig() {
