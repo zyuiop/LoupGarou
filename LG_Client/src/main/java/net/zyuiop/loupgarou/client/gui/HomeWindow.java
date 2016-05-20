@@ -242,6 +242,5 @@ public class HomeWindow extends Stage {
 		LGClient.logger.info("Got server list : " + infoList.toString());
 		gameView.getItems().clear();
 		gameView.getItems().addAll(infoList);
-		gameView.refresh();
 	}
 }
