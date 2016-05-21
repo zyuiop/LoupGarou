@@ -31,7 +31,7 @@ public class WolfCharacter extends Character {
 			protected void maximalResults(Multimap<String, GamePlayer> maximal) {
 				if (maximal.size() == 0) {
 					game.sendToWolves(new MessagePacket(MessageType.GAME, "Aucun joueur désigné, tout le monde vivra !"));
-				} else if (maximal.size() > 1) {
+				} else if (maximal.keySet().size() > 1) {
 					game.sendToWolves(new MessagePacket(MessageType.GAME, "Égalité sur les votes, personne ne mourra cette nuit !"));
 				} else {
 					String victim = maximal.keySet().iterator().next();
