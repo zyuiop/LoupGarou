@@ -15,6 +15,6 @@ public class EndNightPhase extends GamePhase {
 
 	@Override
 	protected void invoke(Game game) {
-		next(new MultiTask(Characters.getCharacter(Role.WHITE_WOLF, game), Characters.getCharacter(Role.WITCH, game)));
+		next(new MultiTask(Characters.getCharacter(Role.WHITE_WOLF, game), Characters.getCharacter(Role.GREAT_BAD_WOLF, game), Characters.getCharacter(Role.WITCH, game)));
 	}
 }

@@ -50,7 +50,9 @@ public class SaverCharacter extends Character {
 						saver.sendMessage(MessageType.GAME, "Vous ne protégez personne cette nuit.");
 					} else {
 						String name = results.values().iterator().next();
-						game.setProtectedPlayer(name);
+						if (GamePlayer.getPlayer(name) != null && GamePlayer.getPlayer(name).getRole() != Role.LITTLE_GIRL)
+							game.setProtectedPlayer(name);
+
 						data.setLastSaved(name);
 						saver.sendMessage(MessageType.GAME, "Vous protégez " + name + " !");
 					}

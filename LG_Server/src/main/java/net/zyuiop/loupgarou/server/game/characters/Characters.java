@@ -21,6 +21,8 @@ public class Characters {
 		characters.put(Role.MEDIUM, MediumCharacter.class);
 		characters.put(Role.SAVER, SaverCharacter.class);
 		characters.put(Role.WHITE_WOLF, WhiteWolfCharacter.class);
+		characters.put(Role.GREAT_BAD_WOLF, BadWolfCharacter.class);
+		characters.put(Role.SAVAGE_KID, SavageKidCharacter.class);
 	}
 
 	public static Character getCharacter(Role role, Game game) {

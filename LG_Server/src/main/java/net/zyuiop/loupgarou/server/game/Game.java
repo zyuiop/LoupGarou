@@ -3,19 +3,20 @@ package net.zyuiop.loupgarou.server.game;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import net.zyuiop.loupgarou.protocol.Packet;
 import net.zyuiop.loupgarou.protocol.data.GamePhase;
 import net.zyuiop.loupgarou.protocol.data.GameState;
 import net.zyuiop.loupgarou.protocol.data.Role;
-import net.zyuiop.loupgarou.protocol.threading.DelayedTask;
-import net.zyuiop.loupgarou.protocol.threading.Task;
-import net.zyuiop.loupgarou.protocol.threading.TaskManager;
-import net.zyuiop.loupgarou.protocol.Packet;
 import net.zyuiop.loupgarou.protocol.network.GameInfo;
 import net.zyuiop.loupgarou.protocol.network.MessageType;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.*;
+import net.zyuiop.loupgarou.protocol.threading.DelayedTask;
+import net.zyuiop.loupgarou.protocol.threading.Task;
+import net.zyuiop.loupgarou.protocol.threading.TaskManager;
 import net.zyuiop.loupgarou.server.LGServer;
 import net.zyuiop.loupgarou.server.game.phases.Phases;
 import net.zyuiop.loupgarou.server.game.phases.PreparationPhase;
+import net.zyuiop.loupgarou.server.game.roledata.RoleData;
 import net.zyuiop.loupgarou.server.game.tasks.HunterTask;
 import net.zyuiop.loupgarou.server.game.votes.MajorityVote;
 import net.zyuiop.loupgarou.server.game.votes.Vote;
@@ -42,6 +43,7 @@ public class Game {
 	private GamePlayer      mayor           = null;
 	private String          protectedPlayer = null;
 	private boolean         isAncientDead   = false;
+	private boolean         wolfKilled      = false;
 
 	protected Game(int gameId, GameConfig config) {
 		this.gameId = gameId;
@@ -140,6 +142,18 @@ public class Game {
 
 	public Set<GamePlayer> getPlayers() {
 		return players;
+	}
+
+	public Collection<GamePlayer> getWolves() {
+		return getPlayers(Role.WOLF, Role.GREAT_BAD_WOLF, Role.WHITE_WOLF);
+	}
+
+	public void sendToWolves(Packet packet) {
+		sendToAll(packet, Role.WOLF, Role.GREAT_BAD_WOLF, Role.WHITE_WOLF);
+	}
+
+	public Collection<GamePlayer> getAllExceptedWolves() {
+		return getPlayersExcepted(Role.WOLF, Role.GREAT_BAD_WOLF, Role.WHITE_WOLF);
 	}
 
 	public Collection<GamePlayer> getPlayersExcepted(Role role, Role... roles) {
@@ -334,6 +348,18 @@ public class Game {
 
 	public TaskChainer stumpPlayer(GamePlayer player, TaskChainer chainer) {
 		// TODO : some stuff, mayor reelection
+		RoleData data = player.getRoleData(RoleData.class);
+		if (data != null && data.getModelOf() != null) {
+			chainer.autoCompleteJustAfter(() -> {
+				if (players.contains(data.getModelOf())) {
+					GamePlayer pl = data.getModelOf();
+					pl.sendMessage(MessageType.GAME, "Votre modèle est mort, vous devenez Loup Garou.");
+					pl.setRole(Role.WOLF);
+				}
+				data.setModelOf(null);
+			});
+		}
+
 		players.remove(player);
 		spectators.add(player);
 		TaskManager.runAsync(this::broadcastPlayerChange);
@@ -389,7 +415,7 @@ public class Game {
 						player.sendPacket(new MessagePacket(MessageType.SYSTEM, "Vous ne pouvez pas envoyer de message pendant cette phase de jeu !"));
 						break;
 					case NIGHT:
-						if (player.getRole() == Role.WOLF || player.getRole() == Role.WHITE_WOLF) {
+						if (player.getRole() == Role.WOLF || player.getRole() == Role.WHITE_WOLF || player.getRole() == Role.GREAT_BAD_WOLF) {
 							sendToAll(new MessagePacket(MessageType.USER, "[Loups] " + player.getName(), message), Role.WOLF, Role.WHITE_WOLF);
 							sendToAll(new MessagePacket(MessageType.USER, "Loup", message), Role.LITTLE_GIRL);
 						} else {
@@ -474,6 +500,14 @@ public class Game {
 
 	public void setAncientDead(boolean ancientDead) {
 		isAncientDead = ancientDead;
+	}
+
+	public boolean isWolfKilled() {
+		return wolfKilled;
+	}
+
+	public void setWolfKilled(boolean wolfKilled) {
+		this.wolfKilled = wolfKilled;
 	}
 
 	private boolean firstTurn = true;

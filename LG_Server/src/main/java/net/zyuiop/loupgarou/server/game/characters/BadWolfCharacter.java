@@ -16,38 +16,32 @@ import java.util.stream.Collectors;
 
 /**
  * @author zyuiop
+ *
+ * The Parting of The Ways
  */
-public class WhiteWolfCharacter extends Character {
-	protected WhiteWolfCharacter(Game game) {
+public class BadWolfCharacter extends Character {
+	protected BadWolfCharacter(Game game) {
 		super(game);
 	}
 
 	@Override
 	public void run() {
-		Collection<GamePlayer> wolves = game.getPlayers(Role.WHITE_WOLF);
+		Collection<GamePlayer> wolves = game.getPlayers(Role.GREAT_BAD_WOLF);
 		if (wolves.size() == 0) {
 			complete();
 			return;
 		}
 
 		GamePlayer wolf = wolves.iterator().next();
-		WhiteWolfData data = wolf.getRoleData(WhiteWolfData.class);
-		if (data == null || !data.passTurn()) {
+		if (game.isWolfKilled()) {
+			wolf.sendMessage(MessageType.GAME, "Vous ne vous réveillez pas à nouveau cette nuit car un loup garou a déjà été tué...");
 			complete();
 			return;
 		}
 
 		List<String> available = Lists.newArrayList("Personne");
-		available.addAll(game.getPlayers(Role.WOLF, Role.GREAT_BAD_WOLF).stream().map(GamePlayer::getName).collect(Collectors.toList()));
-		game.sendToAll(new MessagePacket(MessageType.GAME, "Le loup garou blanc se réveille..."));
-
-		if (available.size() == 1) {
-			wolf.sendMessage(MessageType.GAME, "Vous êtes le seul loup garou en vie, vous ne tuerez donc personne ce soir.");
-			// On affiche quand même le vote pour le suspense
-		} else {
-			wolf.sendMessage(MessageType.GAME, "Vous êtes loup garou blanc, vous pouvez donc choisir de tuer un loup garou ce soir.");
-		}
-
+		available.addAll(game.getAllExceptedWolves().stream().map(GamePlayer::getName).collect(Collectors.toList()));
+		game.sendToAll(new MessagePacket(MessageType.GAME, "Le Grand Méchant Loup se réveille..."));
 
 		Vote vote = new Vote(45, "Désignez votre victime", wolves, available) {
 			@Override
@@ -56,17 +50,19 @@ public class WhiteWolfCharacter extends Character {
 					return;
 
 				if (results.size() == 0) {
-					wolf.sendMessage(MessageType.GAME, "Vous n'avez désigné aucun loup à tuer cette nuit.");
+					wolf.sendMessage(MessageType.GAME, "Vous n'avez désigné aucun joueur à tuer cette nuit.");
 				} else {
 					String value = results.values().iterator().next();
 					if (value.equalsIgnoreCase("personne")) {
-						wolf.sendMessage(MessageType.GAME, "Vous n'avez désigné aucun loup à tuer cette nuit.");
+						wolf.sendMessage(MessageType.GAME, "Vous n'avez désigné aucun joueur à tuer cette nuit.");
 					} else {
 						GamePlayer player = GamePlayer.getPlayer(value);
 						if (player == null) {
-							wolf.sendMessage(MessageType.GAME, "Une erreur s'est produite, aucun loup ne mourra cette nuit.");
+							wolf.sendMessage(MessageType.GAME, "Une erreur s'est produite, aucun joueur ne mourra cette nuit.");
 						} else {
-							game.addVictim(player);
+							// Salvateur. Sans effet sur le GML ?
+							if (game.getProtectedPlayer() == null || !game.getProtectedPlayer().equalsIgnoreCase(player.getName()))
+								game.addVictim(player);
 							wolf.sendMessage(MessageType.GAME, "Vous avez bien tué " + player.getName() + ".");
 						}
 					}
@@ -75,8 +71,8 @@ public class WhiteWolfCharacter extends Character {
 		};
 
 		vote.setRunAfter(() -> {
-			game.sendToAll(new MessagePacket(MessageType.GAME, "Le loup garou blanc se rendort..."));
-			WhiteWolfCharacter.this.complete();
+			game.sendToAll(new MessagePacket(MessageType.GAME, "Le Grand Méchant Loup se rendort..."));
+			BadWolfCharacter.this.complete();
 		});
 		vote.run();
 	}

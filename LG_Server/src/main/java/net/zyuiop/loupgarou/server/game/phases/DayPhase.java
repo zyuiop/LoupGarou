@@ -9,11 +9,13 @@ import net.zyuiop.loupgarou.protocol.utils.MessageModifier;
 import net.zyuiop.loupgarou.server.LGServer;
 import net.zyuiop.loupgarou.server.game.Game;
 import net.zyuiop.loupgarou.server.game.GamePlayer;
+import net.zyuiop.loupgarou.server.game.roledata.IdiotRoleData;
 import net.zyuiop.loupgarou.server.game.votes.MajorityVote;
 import net.zyuiop.loupgarou.server.game.votes.Vote;
 import net.zyuiop.loupgarou.protocol.threading.Task;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -70,9 +72,19 @@ public class DayPhase extends GamePhase {
 			@Override
 			public void run() {
 				List<String> choices = game.getPlayers().stream().map(GamePlayer::getName).collect(Collectors.toList());
+				Collection<GamePlayer> voters = game.getPlayers();
+				Collection<GamePlayer> idiots = game.getPlayers(Role.IDIOT);
+				if (idiots.size() != 0) {
+					GamePlayer idiot = idiots.iterator().next();
+					IdiotRoleData data = idiot.getRoleData(IdiotRoleData.class);
+					if (data != null && data.isDead()) {
+						choices.remove(idiot.getName());
+						voters.remove(idiot);
+					}
+				}
 				choices.add("Personne");
 
-				Vote vote = new MajorityVote(180, "Désignez un coupable", game.getPlayers(), choices) {
+				Vote vote = new MajorityVote(180, "Désignez un coupable", voters, choices) {
 					@Override
 					protected void handleResults(Map<GamePlayer, String> results) {
 						Iterator<String> values = results.values().iterator();
@@ -123,6 +135,13 @@ public class DayPhase extends GamePhase {
 									game.sendToAll(new MessagePacket(MessageType.GAME, "Vous avez tué l'ange ! Celui ci gagne la partie.", MessageModifier.BOLD, (short) 0xB9, (short) 0x12, (short) 0x1B));
 									player.sendPacket(new MessagePacket(MessageType.GAME, "Vous remportez la partie !", MessageModifier.BOLD, (short) 0x8F, (short) 0xCF, (short) 0x3C));
 									game.win();
+									return;
+								} else if (role == Role.IDIOT) {
+									IdiotRoleData data = player.getRoleData(IdiotRoleData.class);
+									if (data != null) {
+										data.villageKill();
+										game.sendToAll(new MessagePacket(MessageType.GAME, "Le joueur était l'idiot du village. Il ne meurt pas mais ne pourra désormais plus voter.", MessageModifier.BOLD, (short) 0xB9, (short) 0x12, (short) 0x1B));
+									}
 									return;
 								}
 								game.stumpPlayer(player, DayPhase.this);
