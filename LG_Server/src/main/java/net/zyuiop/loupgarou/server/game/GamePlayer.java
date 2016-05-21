@@ -90,6 +90,10 @@ public class GamePlayer {
 
 	public void setGame(Game game) {
 		this.game = game;
+		if (this.lover != null) {
+			this.lover.lover = null;
+			this.lover = null;
+		}
 		attributes.clear();
 	}
 

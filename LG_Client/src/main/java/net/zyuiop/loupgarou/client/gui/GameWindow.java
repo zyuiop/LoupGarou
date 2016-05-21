@@ -147,7 +147,7 @@ public class GameWindow extends Stage {
 
 		left.setPadding(new Insets(10, 5, 10, 10));
 		left.setSpacing(7);
-		left.setMaxHeight(Double.MAX_VALUE);
+		left.setMaxHeight(200);
 		VBox.setVgrow(left, Priority.ALWAYS);
 
 		return left;
@@ -211,6 +211,7 @@ public class GameWindow extends Stage {
 		stateLabel = new Label();
 		phaseLabel = new Label();
 		roleLabel = new Label();
+
 		roleCard = new ImageView();
 		roleCard.maxWidth(300);
 		roleCard.maxHeight(300);
