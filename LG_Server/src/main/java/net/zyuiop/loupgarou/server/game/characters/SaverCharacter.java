@@ -56,6 +56,7 @@ public class SaverCharacter extends Character {
 					} else {
 						String name = results.values().iterator().next();
 						game.setProtectedPlayer(name);
+						data.setLastSaved(name);
 						saver.sendMessage(MessageType.GAME, "Vous protégez " + name + " !");
 					}
 				}
