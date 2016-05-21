@@ -16,7 +16,7 @@ import net.zyuiop.loupgarou.client.gui.GameWindow;
 import net.zyuiop.loupgarou.client.gui.HomeWindow;
 import net.zyuiop.loupgarou.client.gui.LoginWindow;
 import net.zyuiop.loupgarou.client.net.handlers.*;
-import net.zyuiop.loupgarou.game.tasks.TaskManager;
+import net.zyuiop.loupgarou.protocol.threading.TaskManager;
 import net.zyuiop.loupgarou.protocol.Packet;
 import net.zyuiop.loupgarou.protocol.network.PacketDecoder;
 import net.zyuiop.loupgarou.protocol.network.PacketEncoder;

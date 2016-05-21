@@ -7,14 +7,14 @@ import net.zyuiop.loupgarou.server.utils.TaskChainer;
  * @author zyuiop
  */
 public abstract class GamePhase extends TaskChainer {
-	private final net.zyuiop.loupgarou.game.GamePhase phase;
+	private final net.zyuiop.loupgarou.protocol.data.GamePhase phase;
 
-	protected GamePhase(net.zyuiop.loupgarou.game.GamePhase phase) {
+	protected GamePhase(net.zyuiop.loupgarou.protocol.data.GamePhase phase) {
 		super(phase.name() + "-Chainer");
 		this.phase = phase;
 	}
 
-	public net.zyuiop.loupgarou.game.GamePhase getPhase() {
+	public net.zyuiop.loupgarou.protocol.data.GamePhase getPhase() {
 		return phase;
 	}
 

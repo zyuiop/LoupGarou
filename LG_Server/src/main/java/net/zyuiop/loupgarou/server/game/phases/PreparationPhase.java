@@ -1,6 +1,6 @@
 package net.zyuiop.loupgarou.server.game.phases;
 
-import net.zyuiop.loupgarou.game.Role;
+import net.zyuiop.loupgarou.protocol.data.Role;
 import net.zyuiop.loupgarou.server.game.Game;
 import net.zyuiop.loupgarou.server.game.characters.Characters;
 import net.zyuiop.loupgarou.server.game.characters.ThiefCharacter;
@@ -10,7 +10,7 @@ import net.zyuiop.loupgarou.server.game.characters.ThiefCharacter;
  */
 public class PreparationPhase extends GamePhase {
 	PreparationPhase() {
-		super(net.zyuiop.loupgarou.game.GamePhase.PREPARATION);
+		super(net.zyuiop.loupgarou.protocol.data.GamePhase.PREPARATION);
 	}
 
 	private Role[] roles = null;

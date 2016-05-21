@@ -1,4 +1,4 @@
-package net.zyuiop.loupgarou.game.tasks;
+package net.zyuiop.loupgarou.protocol.threading;
 
 /**
  * @author zyuiop

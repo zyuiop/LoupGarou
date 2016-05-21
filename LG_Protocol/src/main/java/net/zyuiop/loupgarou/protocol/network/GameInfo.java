@@ -1,6 +1,6 @@
 package net.zyuiop.loupgarou.protocol.network;
 
-import net.zyuiop.loupgarou.game.GameState;
+import net.zyuiop.loupgarou.protocol.data.GameState;
 
 /**
  * @author zyuiop

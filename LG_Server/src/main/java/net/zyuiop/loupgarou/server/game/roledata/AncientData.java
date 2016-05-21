@@ -1,6 +1,6 @@
 package net.zyuiop.loupgarou.server.game.roledata;
 
-import net.zyuiop.loupgarou.game.Role;
+import net.zyuiop.loupgarou.protocol.data.Role;
 
 /**
  * @author zyuiop

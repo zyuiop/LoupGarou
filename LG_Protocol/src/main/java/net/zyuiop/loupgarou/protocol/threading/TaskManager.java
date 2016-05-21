@@ -1,4 +1,4 @@
-package net.zyuiop.loupgarou.game.tasks;
+package net.zyuiop.loupgarou.protocol.threading;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListeningExecutorService;

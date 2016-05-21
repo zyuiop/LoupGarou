@@ -9,7 +9,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 import javafx.util.Callback;
-import net.zyuiop.loupgarou.game.Role;
+import net.zyuiop.loupgarou.protocol.data.Role;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.ChangeGameCompositionPacket;
 
 import java.util.ArrayList;

@@ -1,7 +1,7 @@
 package net.zyuiop.loupgarou.server.utils;
 
 import net.zyuiop.loupgarou.server.LGServer;
-import net.zyuiop.loupgarou.game.tasks.Task;
+import net.zyuiop.loupgarou.protocol.threading.Task;
 
 import java.util.ArrayDeque;
 

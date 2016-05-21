@@ -1,9 +1,8 @@
 package net.zyuiop.loupgarou.server.utils;
 
 import com.google.common.collect.Lists;
-import net.zyuiop.loupgarou.game.tasks.Task;
+import net.zyuiop.loupgarou.protocol.threading.Task;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 /**

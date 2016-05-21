@@ -1,19 +1,14 @@
 package net.zyuiop.loupgarou.server.game.characters;
 
-import net.zyuiop.loupgarou.game.Role;
-import net.zyuiop.loupgarou.game.tasks.Task;
+import net.zyuiop.loupgarou.protocol.data.Role;
 import net.zyuiop.loupgarou.protocol.network.MessageType;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.MessagePacket;
-import net.zyuiop.loupgarou.server.LGServer;
 import net.zyuiop.loupgarou.server.game.Game;
 import net.zyuiop.loupgarou.server.game.GamePlayer;
 import net.zyuiop.loupgarou.server.game.roledata.SaverData;
-import net.zyuiop.loupgarou.server.game.roledata.WitchData;
 import net.zyuiop.loupgarou.server.game.votes.Vote;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 

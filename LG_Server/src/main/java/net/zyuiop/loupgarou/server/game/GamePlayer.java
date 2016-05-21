@@ -1,6 +1,6 @@
 package net.zyuiop.loupgarou.server.game;
 
-import net.zyuiop.loupgarou.game.Role;
+import net.zyuiop.loupgarou.protocol.data.Role;
 import net.zyuiop.loupgarou.protocol.Packet;
 import net.zyuiop.loupgarou.protocol.network.MessageType;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.MessagePacket;

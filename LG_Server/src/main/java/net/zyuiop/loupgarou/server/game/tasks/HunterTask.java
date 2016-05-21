@@ -1,14 +1,14 @@
 package net.zyuiop.loupgarou.server.game.tasks;
 
 import com.google.common.collect.Lists;
-import net.zyuiop.loupgarou.game.Role;
+import net.zyuiop.loupgarou.protocol.data.Role;
 import net.zyuiop.loupgarou.protocol.network.MessageType;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.MessagePacket;
 import net.zyuiop.loupgarou.server.LGServer;
 import net.zyuiop.loupgarou.server.game.Game;
 import net.zyuiop.loupgarou.server.game.GamePlayer;
 import net.zyuiop.loupgarou.server.game.votes.Vote;
-import net.zyuiop.loupgarou.game.tasks.Task;
+import net.zyuiop.loupgarou.protocol.threading.Task;
 import net.zyuiop.loupgarou.server.utils.TaskChainer;
 
 import java.util.Map;

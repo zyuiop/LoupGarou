@@ -1,7 +1,6 @@
 package net.zyuiop.loupgarou.server.game;
 
-import net.zyuiop.loupgarou.game.Role;
-import net.zyuiop.loupgarou.server.LGServer;
+import net.zyuiop.loupgarou.protocol.data.Role;
 
 import java.util.Arrays;
 

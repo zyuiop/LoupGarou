@@ -1,4 +1,4 @@
-package net.zyuiop.loupgarou.game;
+package net.zyuiop.loupgarou.protocol.data;
 
 /**
  * @author zyuiop
@@ -14,8 +14,12 @@ public enum Role {
 	THIEF("Voleur", "Peut choisir une carte parmi deux en début de partie", "Dépend de la carte choisie"),
 	SAVER("Salvateur", "Peut protéger une personne des Loups Garous", "Éliminer tous les Loup Garous"),
 	WHITE_WOLF("Loup Garou Blanc", "Peut tuer un loup garou une nuit sur deux", "Être le dernier en vie"),
-	ANCIENT("Ancien", "Peut résister à un assaut des loups et faire perdre leur pouvoir à tous les villageois s'ils le tuent", "Éliminer tous les Loup Garous"),
-	ANGEL("Ange", "Si le village le tue au premier tour, il gagne la partie.", "Être tué par le village au premier tour");
+	ANCIENT("Ancien", "Résiste à un assaut des loups, fait perdre leur pouvoir aux villageois s'ils le tuent", "Éliminer tous les Loup Garous"),
+	ANGEL("Ange", "Si le village le tue au premier tour, il gagne la partie.", "Être tué par le village au premier tour"),
+
+	IDIOT("Idiot du village", "Ne meurt pas si le village le tue mais ne peut plus voter", "Éliminer tous les Loup Garous"),
+	GREAT_BAD_WOLF("Grand Méchant Loup", "Tant qu'aucun loup n'est port, désigne une seconde victime chaque nuit", "Éliminer tous les villageois"),
+	SAVAGE_KID("Enfant Sauvage", "Se choisit un idole. Si celui ci meurt, il se transformera en loup garou", "Éliminer tous les Loup Garous");
 
 	private final String name;
 	private final String power;

@@ -1,8 +1,7 @@
 package net.zyuiop.loupgarou.server.game.phases;
 
-import net.zyuiop.loupgarou.game.Role;
+import net.zyuiop.loupgarou.protocol.data.Role;
 import net.zyuiop.loupgarou.server.game.Game;
-import net.zyuiop.loupgarou.server.game.characters.Character;
 import net.zyuiop.loupgarou.server.game.characters.Characters;
 
 /**
@@ -10,7 +9,7 @@ import net.zyuiop.loupgarou.server.game.characters.Characters;
  */
 public class NightPhase extends GamePhase {
 	NightPhase() {
-		super(net.zyuiop.loupgarou.game.GamePhase.NIGHT);
+		super(net.zyuiop.loupgarou.protocol.data.GamePhase.NIGHT);
 	}
 
 	@Override

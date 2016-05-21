@@ -1,6 +1,6 @@
 package net.zyuiop.loupgarou.protocol.packets.clientbound;
 
-import net.zyuiop.loupgarou.game.GamePhase;
+import net.zyuiop.loupgarou.protocol.data.GamePhase;
 import net.zyuiop.loupgarou.protocol.Packet;
 import net.zyuiop.loupgarou.protocol.PacketData;
 

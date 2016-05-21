@@ -8,7 +8,6 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>LG_Game</module>
         <module>LG_Protocol</module>
         <module>LG_Server</module>
         <module>LG_Client</module>

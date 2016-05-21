@@ -1,7 +1,7 @@
 package net.zyuiop.loupgarou.server.game;
 
-import net.zyuiop.loupgarou.game.GameState;
-import net.zyuiop.loupgarou.game.Role;
+import net.zyuiop.loupgarou.protocol.data.GameState;
+import net.zyuiop.loupgarou.protocol.data.Role;
 import net.zyuiop.loupgarou.protocol.network.GameInfo;
 import net.zyuiop.loupgarou.protocol.network.MessageType;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.GameLeavePacket;

@@ -1,4 +1,4 @@
-package net.zyuiop.loupgarou.game;
+package net.zyuiop.loupgarou.protocol.data;
 
 /**
  * @author zyuiop

@@ -1,6 +1,6 @@
 package net.zyuiop.loupgarou.server.game.phases;
 
-import net.zyuiop.loupgarou.game.Role;
+import net.zyuiop.loupgarou.protocol.data.Role;
 import net.zyuiop.loupgarou.server.game.Game;
 import net.zyuiop.loupgarou.server.game.characters.Characters;
 import net.zyuiop.loupgarou.server.utils.MultiTask;
@@ -10,7 +10,7 @@ import net.zyuiop.loupgarou.server.utils.MultiTask;
  */
 public class EndNightPhase extends GamePhase {
 	EndNightPhase() {
-		super(net.zyuiop.loupgarou.game.GamePhase.END_NIGHT);
+		super(net.zyuiop.loupgarou.protocol.data.GamePhase.END_NIGHT);
 	}
 
 	@Override

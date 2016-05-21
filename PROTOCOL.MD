@@ -1,7 +1,7 @@
 Protocol Documentation
 ======================
 
-Current protocol version : 6
+Current protocol version : 7
 
 ## Some types definitions :
 
@@ -101,6 +101,9 @@ The `index` value is used in the packet. It is always encoded as a byte.
 | 10    | White wolf
 | 11    | Elder
 | 12    | Angel
+| 13    | Idiot
+| 14    | Great Bad Wolf
+| 15    | Savage Kid
 
 
 ## Packet structure

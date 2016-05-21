@@ -2,7 +2,7 @@ package net.zyuiop.loupgarou.server.game.phases;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import net.zyuiop.loupgarou.game.Role;
+import net.zyuiop.loupgarou.protocol.data.Role;
 import net.zyuiop.loupgarou.protocol.network.MessageType;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.MessagePacket;
 import net.zyuiop.loupgarou.protocol.utils.MessageModifier;
@@ -11,7 +11,7 @@ import net.zyuiop.loupgarou.server.game.Game;
 import net.zyuiop.loupgarou.server.game.GamePlayer;
 import net.zyuiop.loupgarou.server.game.votes.MajorityVote;
 import net.zyuiop.loupgarou.server.game.votes.Vote;
-import net.zyuiop.loupgarou.game.tasks.Task;
+import net.zyuiop.loupgarou.protocol.threading.Task;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Iterator;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  */
 public class DayPhase extends GamePhase {
 	DayPhase() {
-		super(net.zyuiop.loupgarou.game.GamePhase.DAY);
+		super(net.zyuiop.loupgarou.protocol.data.GamePhase.DAY);
 	}
 
 	@Override

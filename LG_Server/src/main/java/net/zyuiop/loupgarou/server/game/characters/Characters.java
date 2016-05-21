@@ -1,6 +1,6 @@
 package net.zyuiop.loupgarou.server.game.characters;
 
-import net.zyuiop.loupgarou.game.Role;
+import net.zyuiop.loupgarou.protocol.data.Role;
 import net.zyuiop.loupgarou.server.game.Game;
 
 import java.lang.reflect.InvocationTargetException;

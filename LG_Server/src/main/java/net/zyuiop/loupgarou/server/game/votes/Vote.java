@@ -11,14 +11,13 @@ import net.zyuiop.loupgarou.protocol.packets.serverbound.VotePacket;
 import net.zyuiop.loupgarou.server.LGServer;
 import net.zyuiop.loupgarou.server.game.GamePlayer;
 import net.zyuiop.loupgarou.server.network.ProtocolHandler;
-import net.zyuiop.loupgarou.game.tasks.RepeatableTask;
-import net.zyuiop.loupgarou.game.tasks.Task;
-import net.zyuiop.loupgarou.game.tasks.TaskManager;
+import net.zyuiop.loupgarou.protocol.threading.RepeatableTask;
+import net.zyuiop.loupgarou.protocol.threading.Task;
+import net.zyuiop.loupgarou.protocol.threading.TaskManager;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * @author zyuiop
