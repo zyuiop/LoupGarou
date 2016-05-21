@@ -44,8 +44,15 @@ public class DayPhase extends GamePhase {
 						", mort" + (victims.size() > 1 ? "s" : "") + " dans la nuit."));
 		});
 
-		for (GamePlayer stump : victims)
-			game.stumpPlayer(stump, this);
+		next(new Task() {
+			@Override
+			public void run() {
+				for (GamePlayer stump : victims)
+					game.stumpPlayer(stump, DayPhase.this);
+
+				complete();
+			}
+		});
 
 		next(new Task() {
 			@Override
