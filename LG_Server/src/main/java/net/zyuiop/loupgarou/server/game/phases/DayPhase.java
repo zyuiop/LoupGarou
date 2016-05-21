@@ -145,6 +145,9 @@ public class DayPhase extends GamePhase {
 									return;
 								}
 								game.stumpPlayer(player, DayPhase.this);
+								DayPhase.this.autoComplete(() -> {
+									game.sendToAll(new MessagePacket(MessageType.GAME, "Le village se rendort..."));
+								});
 							}
 						}
 					}

@@ -107,9 +107,9 @@ public abstract class Vote extends Task {
 		terminated = true;
 		LGServer.getLogger().info("Vote " + id + " is terminated");
 
+		broadcastPacket(new VoteEndPacket(id));
 		handleResults(votations);
 		votes.remove(id);
-		broadcastPacket(new VoteEndPacket(id));
 
 		complete();
 	}
