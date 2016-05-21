@@ -1,14 +1,16 @@
 package net.zyuiop.loupgarou.protocol;
 
+import java.io.IOException;
+
 /**
  * @author zyuiop
  */
-public class NoSuckPacketException extends Exception {
-	public NoSuckPacketException(int packetId) {
+public class NoSuchPacketException extends IOException {
+	public NoSuchPacketException(int packetId) {
 		super("No packet for id " + packetId + " (0x" + Integer.toHexString(packetId).toUpperCase() + ")");
 	}
 
-	public NoSuckPacketException(Class<? extends Packet> clazz) {
+	public NoSuchPacketException(Class<? extends Packet> clazz) {
 		super("No packet id for class " + clazz.getName());
 	}
 }

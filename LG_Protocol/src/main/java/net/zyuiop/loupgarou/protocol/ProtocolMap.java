@@ -37,18 +37,18 @@ public class ProtocolMap {
 		protocolMap.put(0xA6, ChangeGameCompositionPacket.class);
 	}
 
-	public static Class<? extends Packet> getPacketFor(int packetId) throws NoSuckPacketException {
+	public static Class<? extends Packet> getPacketFor(int packetId) throws NoSuchPacketException {
 		if (protocolMap.containsKey(packetId))
 			return protocolMap.get(packetId);
 		else
-			throw new NoSuckPacketException(packetId);
+			throw new NoSuchPacketException(packetId);
 	}
 
-	public static int getPacketIdFor(Packet packet) throws NoSuckPacketException {
+	public static int getPacketIdFor(Packet packet) throws NoSuchPacketException {
 		Class<? extends Packet> packetClass = packet.getClass();
 		if (protocolMap.inverse().containsKey(packetClass))
 			return protocolMap.inverse().get(packetClass);
 		else
-			throw new NoSuckPacketException(packetClass);
+			throw new NoSuchPacketException(packetClass);
 	}
 }
