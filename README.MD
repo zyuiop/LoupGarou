@@ -8,10 +8,7 @@ Protocol defined in PROTOCOL.MD
 
 | Name                  | State
 |-----------------------|---------------------
-| Idiot du village      | Scheduled
-| Grand Méchant Loup    | Scheduled
 | Joueur de flute       | Not planned
-| Enfant Sauvage        | Not planned
 | Bouc Émissaire        | Not planned
 | Crowl                 | Not planned
 | Infect père des loups | Not planned / Unlikely
