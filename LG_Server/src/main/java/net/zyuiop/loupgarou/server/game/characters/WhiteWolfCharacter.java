@@ -36,10 +36,10 @@ public class WhiteWolfCharacter extends Character {
 
 		GamePlayer wolf = wolves.iterator().next();
 		WhiteWolfData data = wolf.getRoleData(WhiteWolfData.class);
-		if (data == null)
+		if (data == null || !data.passTurn()) {
+			complete();
 			return;
-		if (!data.passTurn())
-			return;
+		}
 
 		List<String> available = Lists.newArrayList("Personne");
 		available.addAll(game.getPlayers(Role.WOLF).stream().map(GamePlayer::getName).collect(Collectors.toList()));

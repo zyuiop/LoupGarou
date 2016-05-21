@@ -320,7 +320,7 @@ public class GameWindow extends Stage {
 				sendMessage.setDisable(true);
 				break;
 			case NIGHT:
-				if (role == Role.WOLF || role == null) {
+				if (role == Role.WOLF || role == Role.WHITE_WOLF || role == null) {
 					message.setDisable(false);
 					sendMessage.setDisable(false);
 				} else {
