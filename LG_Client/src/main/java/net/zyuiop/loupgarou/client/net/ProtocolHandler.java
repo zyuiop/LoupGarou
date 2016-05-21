@@ -30,9 +30,14 @@ public class ProtocolHandler extends ChannelInboundHandlerAdapter {
 	}
 
 	private <T extends Packet> void handle(T packet) {
-		PacketHandler<T> handler = (PacketHandler<T>) handlerMap.get(packet.getClass());
-		if (handler != null)
-			handler.handle(packet);
+		try {
+			LGClient.logger.info("Handled packet " + packet.getClass());
+			PacketHandler<T> handler = (PacketHandler<T>) handlerMap.get(packet.getClass());
+			if (handler != null)
+				handler.handle(packet);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static <T extends Packet> void handle(Class<T> clazz, PacketHandler<T> handler) {

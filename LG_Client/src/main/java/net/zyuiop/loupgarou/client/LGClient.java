@@ -102,6 +102,7 @@ public class LGClient extends Application {
 			if (!Platform.isFxApplicationThread()) {
 				Platform.runLater(LoginWindow.getInstance()::show);
 			} else {
+				LoginWindow.getInstance().setConnecting(false);
 				LoginWindow.getInstance().show();
 			}
 		}

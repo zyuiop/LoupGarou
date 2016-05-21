@@ -60,6 +60,7 @@ public class GameWindow extends Stage {
 		mainArea.setPadding(Insets.EMPTY);
 		mainArea.setMinHeight(600);
 		mainArea.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, null)));
+		mainArea.getChildren().clear();
 
 		ScrollPane pane = new ScrollPane(mainArea);
 		pane.setPadding(Insets.EMPTY);

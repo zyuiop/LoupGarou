@@ -223,6 +223,12 @@ public class LoginWindow extends Stage {
 		}
 	}
 
+	@Override
+	public void close() {
+		super.close();
+		setConnecting(false);
+	}
+
 	public static LoginWindow getInstance() {
 		return instance;
 	}

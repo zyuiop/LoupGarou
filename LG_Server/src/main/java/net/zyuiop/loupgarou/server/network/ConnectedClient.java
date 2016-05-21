@@ -3,6 +3,7 @@ package net.zyuiop.loupgarou.server.network;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import net.zyuiop.loupgarou.protocol.Packet;
+import net.zyuiop.loupgarou.server.LGServer;
 import net.zyuiop.loupgarou.server.game.GamePlayer;
 import net.zyuiop.loupgarou.server.game.GamesManager;
 
@@ -32,7 +33,7 @@ public class ConnectedClient {
 
 	public void unregister() {
 		clients.remove(name);
-		GamesManager.leaveGame(GamePlayer.getPlayer(name));
+		GamesManager.leaveGame(GamePlayer.getPlayer(name), false);
 		GamePlayer.getPlayer(name).setClient(null);
 		if (context.channel().isOpen())
 			context.close();

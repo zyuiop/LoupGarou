@@ -18,6 +18,7 @@ import net.zyuiop.loupgarou.server.game.phases.Phases;
 import net.zyuiop.loupgarou.server.game.phases.PreparationPhase;
 import net.zyuiop.loupgarou.server.game.tasks.HunterTask;
 import net.zyuiop.loupgarou.server.game.votes.MajorityVote;
+import net.zyuiop.loupgarou.server.game.votes.Vote;
 import net.zyuiop.loupgarou.server.utils.TaskChainer;
 
 import java.util.*;
@@ -28,10 +29,11 @@ import java.util.stream.Collectors;
  */
 public class Game {
 	private final int gameId;
-	private GameState        state      = GameState.WAITING;
-	private GamePhase        phase      = null;
-	private List<GamePlayer> players    = new ArrayList<>();
-	private List<GamePlayer> spectators = new ArrayList<>();
+	private       GameState                    state      = GameState.WAITING;
+	private       GamePhase                    phase      = null;
+	private       Set<GamePlayer>             players    = new HashSet<>();
+	private       Set<GamePlayer>             spectators = new HashSet<>();
+	private final Map<GamePlayer, DelayedTask> leaveTasks = new HashMap<>();
 	private GameConfig config;
 
 	// Running variables
@@ -58,22 +60,30 @@ public class Game {
 				spectators.remove(player);
 				players.add(player);
 				broadcastPlayerChange();
+				confirmJoin(player);
 				player.setGame(this);
 				player.sendPacket(new MessagePacket(MessageType.SYSTEM, "Vous avez rejoint la partie !"));
 				sendToAll(new MessagePacket(MessageType.SYSTEM, player.getName() + " a rejoint la partie !"));
-				confirmJoin(player);
 
 				if (players.size() >= config.getPlayers())
 					start();
 			} else {
-				player.sendPacket(new MessagePacket(MessageType.SYSTEM, "Vous êtes déjà dans cette partie !"));
 				confirmJoin(player);
 			}
 		} else {
 			if (!players.contains(player)) {
+				confirmJoin(player);
 				spectators.add(player);
 				player.getClient().sendPacket(new MessagePacket(MessageType.SYSTEM, "Vous rejoignez en tant que spectateur !"));
-				confirmJoin(player);
+			} else {
+				if (leaveTasks.containsKey(player)) {
+					confirmJoin(player);
+					leaveTasks.remove(player).cancel();
+					Vote.reconnect(player);
+					sendToAll(new MessagePacket(MessageType.SYSTEM, player.getName() + " s'est reconnecté !"));
+				} else {
+					LGServer.getLogger().warn("Player reconnected but was not expected (" + player.getName() + ", expected " + leaveTasks.keySet().toString() + ")");
+				}
 			}
 		}
 	}
@@ -128,7 +138,7 @@ public class Game {
 		return players.stream().filter(pl -> allRoles.contains(pl.getRole())).collect(Collectors.toList());
 	}
 
-	public List<GamePlayer> getPlayers() {
+	public Set<GamePlayer> getPlayers() {
 		return players;
 	}
 
@@ -191,22 +201,25 @@ public class Game {
 	public boolean checkWin() {
 
 
-		if (getPlayers(Role.WOLF).size() == 0) {
-			sendToAll(new MessagePacket(MessageType.GAME, "Victoire du village !"));
-			return true;
-		} else if (getPlayersExcepted(Role.WHITE_WOLF).size() < 2) {
+		if (getPlayers(Role.WHITE_WOLF).size() == 1 && getPlayersExcepted(Role.WHITE_WOLF).size() < 2) {
 			sendToAll(new MessagePacket(MessageType.GAME, "Victoire du Loup Blanc !"));
+			return true;
+		} else if (getPlayers(Role.WOLF, Role.WHITE_WOLF).size() == 0) {
+			sendToAll(new MessagePacket(MessageType.GAME, "Victoire du village !"));
 			return true;
 		} else if (getPlayersExcepted(Role.WOLF, Role.WHITE_WOLF).size() == 0) {
 			sendToAll(new MessagePacket(MessageType.GAME, "Victoire des Loups !"));
 			sendToAll(new MessagePacket(MessageType.GAME, "Vous perdez la partie ! (victoire des loups)"), Role.WHITE_WOLF);
 			return true;
-		} else if (players.size() == 2 && players.get(0).getLover() != null && players.get(0).getLover().equals(players.get(1))) {
-			String p1 = players.get(0) + " (" + players.get(0).getRole().getName() + ")";
-			String p2 = players.get(1) + " (" + players.get(1).getRole().getName() + ")";
+		} else {
+			List<GamePlayer> players = Lists.newArrayList(this.players);
+			if (players.size() == 2 && players.get(0).getLover() != null && players.get(0).getLover().equals(players.get(1))) {
+				String p1 = players.get(0) + " (" + players.get(0).getRole().getName() + ")";
+				String p2 = players.get(1) + " (" + players.get(1).getRole().getName() + ")";
 
-			sendToAll(new MessagePacket(MessageType.GAME, "Victoire des deux amoureux : " + p1 + " et " + p2));
-			return true;
+				sendToAll(new MessagePacket(MessageType.GAME, "Victoire des deux amoureux : " + p1 + " et " + p2));
+				return true;
+			}
 		}
 		return false;
 	}
@@ -331,7 +344,7 @@ public class Game {
 			chainer.justAfter(electMayor());
 		}
 
-		if (player.getRole() == Role.HUNTER) {
+		if (player.getRole() == Role.HUNTER && player.getClient() != null && player.getGame() == this) {
 			chainer.justAfter(new HunterTask(this, chainer, player));
 		}
 
@@ -400,11 +413,47 @@ public class Game {
 
 	}
 
-	public void removePlayer(GamePlayer player) {
+	public void leaveRoom(GamePlayer player) {
 		sendToAll(new MessagePacket(MessageType.SYSTEM, player.getName() + " a quitté la partie."));
 
 		players.remove(player);
 		spectators.remove(player);
+		broadcastPlayerChange();
+	}
+
+	public void removePlayer(GamePlayer player) {
+		if (state == GameState.STARTED && players.contains(player)) {
+			DelayedTask task = new DelayedTask(300) {
+				@Override
+				public void run() {
+					synchronized (leaveTasks) {
+						leaveTasks.remove(player);
+					}
+					TaskChainer chainer = new TaskChainer("AutoStumpChainer");
+					player.setGame(null);
+					sendToAll(new MessagePacket(MessageType.GAME, player.getName() + " est éliminé (déconnexion). Il était " + player.getRole().getName()));
+
+					stumpPlayer(player, chainer);
+					chainer.autoComplete(() -> checkWin());
+					chainer.setRunAfter(this::complete);
+					chainer.run();
+				}
+			};
+
+			if (leaveTasks.containsKey(player))
+				leaveTasks.remove(player).cancel();
+
+			leaveTasks.put(player, task);
+			TaskManager.submit(task);
+			sendToAll(new MessagePacket(MessageType.SYSTEM, player.getName() + " s'est déconnecté. Il sera éliminé dans 5 minutes."));
+			return;
+		}
+
+		sendToAll(new MessagePacket(MessageType.SYSTEM, player.getName() + " a quitté la partie."));
+
+		players.remove(player);
+		spectators.remove(player);
+		broadcastPlayerChange();
 	}
 
 	public String getProtectedPlayer() {

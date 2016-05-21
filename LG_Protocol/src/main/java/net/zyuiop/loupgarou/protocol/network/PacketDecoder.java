@@ -19,9 +19,10 @@ import java.util.List;
 public class PacketDecoder extends ByteToMessageDecoder {
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+		int index = in.readerIndex();
 		int size = in.readInt();
 		if (in.readableBytes() < size) {
-			in.resetReaderIndex();
+			in.readerIndex(index);
 			return;
 		}
 

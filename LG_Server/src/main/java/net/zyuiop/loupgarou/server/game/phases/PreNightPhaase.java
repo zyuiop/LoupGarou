@@ -3,6 +3,7 @@ package net.zyuiop.loupgarou.server.game.phases;
 import net.zyuiop.loupgarou.game.Role;
 import net.zyuiop.loupgarou.server.game.Game;
 import net.zyuiop.loupgarou.server.game.characters.Characters;
+import net.zyuiop.loupgarou.server.utils.MultiTask;
 
 /**
  * @author zyuiop
@@ -14,7 +15,6 @@ public class PreNightPhaase extends GamePhase {
 
 	@Override
 	protected void invoke(Game game) {
-		next(Characters.getCharacter(Role.MEDIUM, game));
-		next(Characters.getCharacter(Role.SAVER, game));
+		next(new MultiTask(Characters.getCharacter(Role.MEDIUM, game), Characters.getCharacter(Role.SAVER, game)));
 	}
 }

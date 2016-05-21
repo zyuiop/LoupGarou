@@ -34,6 +34,12 @@ public abstract class Vote extends Task {
 		return nextVoteId++;
 	}
 
+	public static void reconnect(GamePlayer player) {
+		votes.values().stream().filter(vote -> vote.players.contains(player)).forEach(vote -> {
+			vote.reconnectPlayer(player);
+		});
+	}
+
 	public static Vote getVote(int id) {
 		return votes.get(id);
 	}
@@ -60,12 +66,11 @@ public abstract class Vote extends Task {
 		votes.put(id, this);
 
 		timerTask = new RepeatableTask(1, 1) {
-			private int time = Vote.this.time;
 			@Override
 			public void run() {
-				time --;
+				Vote.this.time --;
 				// TODO : broadcast vote packet
-				if (time == 0) {
+				if (Vote.this.time == 0) {
 					complete();
 					cancel();
 				}
@@ -75,7 +80,7 @@ public abstract class Vote extends Task {
 	}
 
 	private boolean terminated = false;
-	private final int  time;
+	private int time;
 	private final int id = getVoteId();
 	private final String                 name;
 	private final Collection<GamePlayer> players;
@@ -89,6 +94,10 @@ public abstract class Vote extends Task {
 		LGServer.getLogger().info("Running vote " + id + " !");
 		broadcastPacket(new VoteRequestPacket(id, name, time, availableChoices, players.stream().map(GamePlayer::getName).toArray(String[]::new))); // broadcast packet
 		TaskManager.submit(timerTask);
+	}
+
+	private void reconnectPlayer(GamePlayer player) {
+		player.sendPacket(new VoteRequestPacket(id, name, time, availableChoices, players.stream().map(GamePlayer::getName).toArray(String[]::new)));
 	}
 
 	private void endVote() {

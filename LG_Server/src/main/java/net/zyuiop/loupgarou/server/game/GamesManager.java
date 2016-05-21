@@ -29,7 +29,7 @@ public class GamesManager {
 		ProtocolHandler.handle(JoinGamePacket.class, (packet, client) -> {
 			int id = packet.getGameId();
 			if (id == -1) {
-				leaveGame(client.getPlayer());
+				leaveGame(client.getPlayer(), true);
 				client.sendPacket(new GameListPacket(getInfos()));
 				return;
 			}
@@ -130,18 +130,22 @@ public class GamesManager {
 		GamePlayer player = client.getPlayer();
 		if (player.getGame() != null) {
 			player.sendMessage(MessageType.SYSTEM, "You joined your game automatically !");
-			player.getGame().confirmJoin(player);
+			player.getGame().handleJoin(player);
 		} else {
 			player.sendPacket(new GameListPacket(getInfos()));
 		}
 	}
 
-	public static void leaveGame(GamePlayer player) {
+	public static void leaveGame(GamePlayer player, boolean voluntary) {
 		Game game = player.getGame();
 		if (game != null) {
-			game.removePlayer(player);
-			player.sendPacket(new GameLeavePacket("Partie quittée"));
-			player.setGame(null);
+			if (voluntary) {
+				game.leaveRoom(player);
+				player.sendPacket(new GameLeavePacket("Partie quittée"));
+				player.setGame(null);
+			} else {
+				game.removePlayer(player);
+			}
 		} else {
 			player.sendPacket(new GameLeavePacket("Partie quittée"));
 		}
