@@ -20,6 +20,11 @@ public class PacketDecoder extends ByteToMessageDecoder {
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
 		int index = in.readerIndex();
+		if (in.readableBytes() < 4) {
+			in.readerIndex(index);
+			return;
+		}
+
 		int size = in.readInt();
 		if (in.readableBytes() < size) {
 			in.readerIndex(index);
