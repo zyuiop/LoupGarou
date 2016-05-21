@@ -4,13 +4,13 @@ import com.google.common.collect.Lists;
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -29,6 +29,7 @@ import net.zyuiop.loupgarou.protocol.packets.serverbound.JoinGamePacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.SendMessagePacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.VotePacket;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,11 +50,12 @@ public class GameWindow extends Stage {
 	private final Label     stateLabel;
 	private final Label     phaseLabel;
 	private final Label     roleLabel;
+	private final ImageView roleCard;
 	private final VBox      gameState;
 	private final VBox      presentRoles;
 	private final TextField message;
 	private final Button    sendMessage;
-	private Role role = null;
+	private Role               role    = null;
 	private Map<Role, Integer> roleMap = new HashMap<>();
 
 	private GameJoinConfirmPacket joinData;
@@ -146,13 +148,14 @@ public class GameWindow extends Stage {
 	}
 
 	private Pane setupRightSide() {
+		roleCard.setImage(null);
 		players.getChildren().clear();
 		voteValues.getPanes().clear();
 
 		Label firstLabel = new Label("Votes des joueurs");
 		firstLabel.setFont(Font.font(firstLabel.getFont().getFamily(), FontWeight.BOLD, 15));
 
-		VBox right = new VBox(players, new Separator(Orientation.HORIZONTAL), firstLabel, voteValues);
+		VBox right = new VBox(roleCard, players, new Separator(Orientation.HORIZONTAL), firstLabel, voteValues);
 		right.setPadding(new Insets(10, 10, 10, 5));
 		right.setSpacing(7);
 		right.setMaxHeight(Double.MAX_VALUE);
@@ -202,6 +205,12 @@ public class GameWindow extends Stage {
 		stateLabel = new Label();
 		phaseLabel = new Label();
 		roleLabel = new Label();
+		roleCard = new ImageView();
+		roleCard.maxWidth(300);
+		roleCard.maxHeight(300);
+		roleCard.setPreserveRatio(true);
+		VBox.setVgrow(roleCard, Priority.ALWAYS);
+
 		gameState = new VBox();
 		presentRoles = new VBox();
 		votes = new VBox();
@@ -314,6 +323,16 @@ public class GameWindow extends Stage {
 		if (!gameState.getChildren().contains(roleLabel))
 			gameState.getChildren().add(roleLabel);
 		this.role = role;
+
+		try {
+			InputStream stream = getClass().getClassLoader().getResourceAsStream("card-" + role.name() + ".jpg");
+			if (stream != null) {
+				Image image = new Image(stream);
+				roleCard.setImage(image);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void setPlayers(SetPlayersPacket packet) {
