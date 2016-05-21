@@ -13,6 +13,9 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
+import javafx.scene.media.AudioClip;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -29,7 +32,9 @@ import net.zyuiop.loupgarou.protocol.packets.serverbound.JoinGamePacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.SendMessagePacket;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.VotePacket;
 
+import javax.sound.sampled.AudioSystem;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +62,7 @@ public class GameWindow extends Stage {
 	private final Button    sendMessage;
 	private Role               role    = null;
 	private Map<Role, Integer> roleMap = new HashMap<>();
+	private MediaPlayer player = null;
 
 	private GameJoinConfirmPacket joinData;
 
@@ -295,6 +301,18 @@ public class GameWindow extends Stage {
 		if (!gameState.getChildren().contains(phaseLabel))
 			gameState.getChildren().add(phaseLabel);
 
+		if (player != null) {
+			player.stop();
+			player = null;
+		}
+
+		URL url = this.getClass().getClassLoader().getResource("phase-" + phase.name() + ".mp3");
+		if (url != null) {
+			Media media = new Media(url.toExternalForm());
+			player = new MediaPlayer(media);
+			player.play();
+		}
+
 		switch (phase) {
 			case PRE_NIGHT:
 			case END_NIGHT:
@@ -351,6 +369,8 @@ public class GameWindow extends Stage {
 	}
 
 	public void startVote(VoteRequestPacket packet) {
+		finishVote(packet.getVoteId());
+
 		VoteHolder pane = new VoteHolder(packet);
 		voteMap.put(packet.getVoteId(), pane);
 		votes.getChildren().add(pane.getVotePane());
@@ -362,8 +382,12 @@ public class GameWindow extends Stage {
 	}
 
 	public void finishVote(VoteEndPacket packet) {
-		if (voteMap.containsKey(packet.getVoteId())) {
-			VoteHolder holder = voteMap.remove(packet.getVoteId());
+		finishVote(packet.getVoteId());
+	}
+
+	public void finishVote(int id) {
+		if (voteMap.containsKey(id)) {
+			VoteHolder holder = voteMap.remove(id);
 			votes.getChildren().remove(holder.getVotePane());
 			voteValues.getPanes().remove(holder.getValuePane());
 			holder.remove();
