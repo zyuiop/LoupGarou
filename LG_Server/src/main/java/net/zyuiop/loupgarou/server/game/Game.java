@@ -381,7 +381,7 @@ public class Game {
 
 		if (state == GameState.STARTED) {
 			if (spectators.contains(player)) {
-				sendToSpectators(new MessagePacket(MessageType.USER, player.getName(), message));
+				sendToSpectators(new MessagePacket(MessageType.USER, "[Spec] " + player.getName(), message));
 			} else if (players.contains(player)) {
 				switch (phase) {
 					case PRE_NIGHT:
@@ -390,7 +390,7 @@ public class Game {
 						break;
 					case NIGHT:
 						if (player.getRole() == Role.WOLF || player.getRole() == Role.WHITE_WOLF) {
-							sendToAll(new MessagePacket(MessageType.USER, player.getName(), message), Role.WOLF, Role.WHITE_WOLF);
+							sendToAll(new MessagePacket(MessageType.USER, "[Loups] " + player.getName(), message), Role.WOLF, Role.WHITE_WOLF);
 							sendToAll(new MessagePacket(MessageType.USER, "Loup", message), Role.LITTLE_GIRL);
 						} else {
 							player.sendPacket(new MessagePacket(MessageType.SYSTEM, "Vous ne pouvez pas envoyer de message pendant cette phase de jeu !"));
