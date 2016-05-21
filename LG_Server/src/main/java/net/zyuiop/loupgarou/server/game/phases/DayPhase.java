@@ -65,7 +65,7 @@ public class DayPhase extends GamePhase {
 				List<String> choices = game.getPlayers().stream().map(GamePlayer::getName).collect(Collectors.toList());
 				choices.add("Personne");
 
-				Vote vote = new MajorityVote(300, "Désignez un coupable", game.getPlayers(), choices) {
+				Vote vote = new MajorityVote(180, "Désignez un coupable", game.getPlayers(), choices) {
 					@Override
 					protected void handleResults(Map<GamePlayer, String> results) {
 						Iterator<String> values = results.values().iterator();

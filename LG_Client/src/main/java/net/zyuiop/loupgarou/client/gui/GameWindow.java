@@ -4,6 +4,8 @@ import com.google.common.collect.Lists;
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -58,15 +60,16 @@ public class GameWindow extends Stage {
 
 	private Pane setupMainArea() {
 		mainArea.setPadding(Insets.EMPTY);
-		mainArea.setMinHeight(600);
 		mainArea.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, null)));
 		mainArea.getChildren().clear();
 
 		ScrollPane pane = new ScrollPane(mainArea);
 		pane.setPadding(Insets.EMPTY);
 		pane.setMinHeight(600);
-		pane.setMaxHeight(600);
-		//pane.fitToHeightProperty().setValue(true);
+		pane.setMinViewportHeight(600);
+		pane.setMaxHeight(Double.MAX_VALUE);
+		pane.setStyle("-fx-background: white;");
+		VBox.setVgrow(pane, Priority.ALWAYS);
 		pane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
 		DoubleProperty hProperty = new SimpleDoubleProperty();
@@ -92,7 +95,7 @@ public class GameWindow extends Stage {
 		center.setSpacing(5);
 		center.setPadding(new Insets(10, 5, 10, 5));
 		center.setMaxHeight(Double.MAX_VALUE);
-		VBox.setVgrow(center, Priority.ALWAYS);
+		center.setMinWidth(500);
 
 		setOnCloseRequest(event -> {
 			Platform.exit();
@@ -163,6 +166,9 @@ public class GameWindow extends Stage {
 		main.setCenter(setupMainArea());
 		main.setRight(setupRightSide());
 
+		setMinWidth(900);
+		setMinHeight(680);
+		setMaximized(true);
 		setScene(new Scene(main));
 	}
 
@@ -170,8 +176,7 @@ public class GameWindow extends Stage {
 		this.networkManager = networkManager;
 
 		setTitle("Not ready");
-		setWidth(1024);
-		setResizable(false);
+		//setResizable(false);
 
 		mainArea = new VBox();
 		message = new TextField();
@@ -224,6 +229,8 @@ public class GameWindow extends Stage {
 	public void writeText(Label label) {
 		if (Platform.isFxApplicationThread()) {
 			label.setWrapText(true);
+			if (mainArea.getChildren().size() > 100)
+				mainArea.getChildren().remove(0);
 			mainArea.getChildren().add(label);
 		} else {
 			Platform.runLater(() -> writeText(label));
@@ -236,6 +243,8 @@ public class GameWindow extends Stage {
 			label.setWrapText(true);
 			if (style != null)
 				label.setStyle(style);
+			if (mainArea.getChildren().size() > 100)
+				mainArea.getChildren().remove(0);
 			mainArea.getChildren().add(label);
 		} else {
 			Platform.runLater(() -> writeText(text));

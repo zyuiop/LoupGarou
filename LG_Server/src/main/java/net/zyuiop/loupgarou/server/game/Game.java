@@ -31,8 +31,8 @@ public class Game {
 	private final int gameId;
 	private       GameState                    state      = GameState.WAITING;
 	private       GamePhase                    phase      = null;
-	private       Set<GamePlayer>             players    = new HashSet<>();
-	private       Set<GamePlayer>             spectators = new HashSet<>();
+	private       Set<GamePlayer>              players    = new HashSet<>();
+	private       Set<GamePlayer>              spectators = new HashSet<>();
 	private final Map<GamePlayer, DelayedTask> leaveTasks = new HashMap<>();
 	private GameConfig config;
 
@@ -414,11 +414,27 @@ public class Game {
 	}
 
 	public void leaveRoom(GamePlayer player) {
-		sendToAll(new MessagePacket(MessageType.SYSTEM, player.getName() + " a quitté la partie."));
+		if (state == GameState.STARTED && players.contains(player)) {
+			synchronized (leaveTasks) {
+				DelayedTask task = leaveTasks.remove(player);
+				if (task != null)
+					task.cancel();
+			}
 
-		players.remove(player);
-		spectators.remove(player);
-		broadcastPlayerChange();
+			TaskChainer chainer = new TaskChainer("AutoStumpChainer");
+			player.setGame(null);
+			sendToAll(new MessagePacket(MessageType.GAME, player.getName() + " est éliminé (déconnexion). Il était " + player.getRole().getName()));
+
+			stumpPlayer(player, chainer);
+			chainer.autoComplete(this::checkWin);
+			chainer.run();
+			return;
+		} else {
+			players.remove(player);
+			spectators.remove(player);
+			broadcastPlayerChange();
+			sendToAll(new MessagePacket(MessageType.SYSTEM, player.getName() + " a quitté la partie."));
+		}
 	}
 
 	public void removePlayer(GamePlayer player) {
@@ -426,17 +442,7 @@ public class Game {
 			DelayedTask task = new DelayedTask(300) {
 				@Override
 				public void run() {
-					synchronized (leaveTasks) {
-						leaveTasks.remove(player);
-					}
-					TaskChainer chainer = new TaskChainer("AutoStumpChainer");
-					player.setGame(null);
-					sendToAll(new MessagePacket(MessageType.GAME, player.getName() + " est éliminé (déconnexion). Il était " + player.getRole().getName()));
-
-					stumpPlayer(player, chainer);
-					chainer.autoComplete(() -> checkWin());
-					chainer.setRunAfter(this::complete);
-					chainer.run();
+					leaveRoom(player);
 				}
 			};
 
