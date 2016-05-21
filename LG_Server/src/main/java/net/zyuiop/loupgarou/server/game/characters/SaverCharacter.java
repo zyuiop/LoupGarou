@@ -27,8 +27,10 @@ public class SaverCharacter extends Character {
 
 	@Override
 	public void run() {
-		if (game.isAncientDead())
+		if (game.isAncientDead()) {
+			complete();
 			return;
+		}
 
 		Collection<GamePlayer> savers = game.getPlayers(Role.SAVER);
 		if (savers.size() > 0) {

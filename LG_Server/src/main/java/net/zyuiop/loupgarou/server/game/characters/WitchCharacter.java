@@ -26,8 +26,10 @@ public class WitchCharacter extends Character {
 
 	@Override
 	public void run() {
-		if (game.isAncientDead())
+		if (game.isAncientDead()) {
+			complete();
 			return;
+		}
 
 		Collection<GamePlayer> witches = game.getPlayers(Role.WITCH);
 		if (witches.size() > 0) {

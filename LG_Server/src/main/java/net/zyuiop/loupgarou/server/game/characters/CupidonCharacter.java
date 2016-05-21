@@ -21,8 +21,10 @@ public class CupidonCharacter extends Character {
 
 	@Override
 	public void run() {
-		if (game.isAncientDead())
+		if (game.isAncientDead()) {
+			complete();
 			return;
+		}
 
 		Collection<GamePlayer> cupidon = game.getPlayers(Role.CUPIDON);
 		if (cupidon.size() > 0) {

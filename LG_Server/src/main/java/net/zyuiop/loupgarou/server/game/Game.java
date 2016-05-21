@@ -199,8 +199,6 @@ public class Game {
 	}
 
 	public boolean checkWin() {
-
-
 		if (getPlayers(Role.WHITE_WOLF).size() == 1 && getPlayersExcepted(Role.WHITE_WOLF).size() < 2) {
 			sendToAll(new MessagePacket(MessageType.GAME, "Victoire du Loup Blanc !"));
 			return true;
