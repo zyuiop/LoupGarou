@@ -167,6 +167,10 @@ public class Game {
 	}
 
 	public void start() {
+		TaskManager.runAsync(this::start_);
+	}
+
+	private void start_() {
 		setState(GameState.PREPARING);
 		sendToAll(new SetStatePacket(state));
 

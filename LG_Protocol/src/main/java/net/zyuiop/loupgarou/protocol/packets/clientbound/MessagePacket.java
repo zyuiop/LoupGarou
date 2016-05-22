@@ -78,9 +78,9 @@ public class MessagePacket extends Packet {
 
 		if (customStyle) {
 			byteBuf.writeEnum(modifier);
-			byteBuf.writeShort(red);
-			byteBuf.writeShort(green);
-			byteBuf.writeShort(blue);
+			byteBuf.writeByte(red);
+			byteBuf.writeByte(green);
+			byteBuf.writeByte(blue);
 		}
 	}
 
