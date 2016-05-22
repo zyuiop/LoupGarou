@@ -9,6 +9,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import net.zyuiop.loupgarou.client.LGClient;
 import net.zyuiop.loupgarou.protocol.data.Role;
 import net.zyuiop.loupgarou.protocol.packets.serverbound.ChangeGameCompositionPacket;
 
@@ -73,16 +74,17 @@ public class EditGameWindow extends Stage {
 			class RoleCell extends ListCell<Role> {
 				@Override
 				protected void updateItem(Role item, boolean empty) {
-					super.updateItem(item, empty);
+					super.updateItem(item, item == null);
 					setText(item == null ? "" : item.getName());
 
-					if (parent.getRoleMap().containsKey(item) && parent.getRoleMap().get(item) > 0)
+					if (parent.getRoleMap().containsKey(item) && parent.getRoleMap().get(item) > 0) {
 						updateSelected(true);
-					else
-						updateSelected(false);
+						roles.getSelectionModel().select(item);
+					}
 				}
 			}
 		});
+
 
 		List<Role> allowed = Lists.newArrayList(Role.values());
 		allowed.remove(Role.VILLAGER);
