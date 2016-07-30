@@ -1,0 +1,130 @@
+<div class="container">
+    <div class="row">
+        <div class="col-md-3">
+            <div id="game-state">
+                <h3>Êtat du jeu</h3>
+                <ul>
+                    <li id="game-state-name">Nom : </li>
+                    <li id="game-state-host">Host : </li>
+                    <li id="game-state-state">Êtat : </li>
+                    <li id="game-state-role" hidden>Personnage : </li>
+                    <li id="game-state-turn" hidden>Tour : </li>
+                </ul>
+            </div>
+
+            <div id="composition">
+
+            </div>
+
+            <div id="actions">
+
+            </div>
+
+            <div id="vote">
+
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div id="chat-content">
+
+            </div>
+            <div id="chat-sender" style="margin-bottom: 0px">
+                <form class="form-inline">
+                    <div class="form-group">
+                        <label class="sr-only" for="messageField">Message</label>
+                        <input type="text" class="form-control" id="messageField" placeholder="Message">
+                    </div>
+                    <button type="submit" class="btn btn-default">Envoyer</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div id="role">
+
+            </div>
+
+            <div id="players">
+
+            </div>
+
+            <div id="player-votes">
+
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    refreshGameState = function () {
+        $("#game-state-name").text("Nom : " + currentGame.name);
+        $("#game-state-host").text("Host : " + currentGame.host);
+
+        if (typeof currentGame.state !== "undefined") {
+            $("#game-state-state").text("Êtat : " + gameState[currentGame.state]);
+        }
+
+        if (typeof currentGame.role !== "undefined") {
+            $("#game-state-state").text("Personnage : " + roles[currentGame.role].display);
+            $("#role").html("<img src='card-" + currentGame.role + ".jpg' />");
+        }
+
+        if (typeof currentGame.turn !== "undefined") {
+            $("#game-state-state").text("Tour : " + gamePhase[currentGame.turn]);
+        }
+    };
+
+    refreshPlayers = function () {
+        var html = "<h3>Joueurs (" + currentGame.players.length + " / " + currentGame.maxPlayers + ")</h3>";
+        html += "<ul>";
+
+        for (var player of currentGame.players)
+            html += "<li>" + player + "</li>";
+
+        html += "</ul>";
+        $("#players").html(html);
+    };
+
+    refreshRoles = function () {
+        var roleMap = {};
+
+        for (var roleId in currentGame.composition) {
+            var role = currentGame.composition[roleId];
+            if (role in roleMap)
+                roleMap[role] += 1;
+            else
+                roleMap[role] = 1;
+        }
+
+        var html = "<h3>Composition</h3>";
+        html += "<ul>";
+        for (var role in roleMap)
+            html += "<li>" + roles[role].display + (roleMap[role] > 1 ? " (" + roleMap[role] + ")" : "") + "</li>";
+
+        html += "</ul>";
+        $("#composition").html(html);
+    };
+
+    appendToChat = function(packet) {
+        var tag = "<span syle='"
+
+        if (packet.red >= 0 && packet.green >= -1 && packet.blue >= -1)
+            tag += "color: rgb(" + packet.red + ", " + packet.green + ", " + packet.blue + ");";
+
+        tag += "'>";
+
+        if (packet.type === "USER")
+            tag += "[" + packet.sender + "]";
+        else if (packet.type === "GAME")
+            tag += "(Jeu)";
+        else
+            tag += "(Système)";
+
+        tag += " " + packet.message;
+        $("#chat-content").append("<p>" + tag + "</span></p>");
+    };
+
+    $(document).ready(function () {
+        refreshGameState();
+        refreshPlayers();
+        refreshRoles();
+    });
+</script>

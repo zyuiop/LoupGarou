@@ -1,0 +1,166 @@
+<html>
+<head>
+    <title>Loup Garou - Web Client</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+</head>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="constants.js"></script>
+<script src="sha256.js"></script>
+<script>
+    var handler = {};
+    var games = {};
+    var currentGame = null;
+
+    handler.socket = null;
+    handler.sendPacket = function (packet) {
+        this.socket.send(JSON.stringify(packet))
+    };
+    handler.handlers = {};
+
+    function doConnect(name, ip, port) {
+        if (handler.socket !== null) {
+            handler.socket.close()
+        }
+
+        handler.socket = new WebSocket("ws://localhost:8000/game");
+        handler.socket.onopen = function () {
+            handler.sendPacket({
+                name: name,
+                ip: ip,
+                port: port
+            });
+        };
+
+        handler.socket.onmessage = function (message) {
+            var msg = JSON.parse(message.data);
+            console.log(msg);
+            var packetId = msg.packetId;
+            var handleMethod = handler.handlers[packetId];
+            if (typeof handleMethod !== "undefined") {
+                handleMethod(msg);
+            } else
+                console.log("No handler for packet " + packetId + " :(")
+        };
+    }
+
+    handler.handlers[1] = function (packet) {
+        findGameWindow();
+    };
+
+    var gameRefreshHandler = function () {};
+
+    handler.handlers[2] = function (packet) {
+        games = {};
+
+        for (game of packet.games)
+            games[game.id] = game;
+
+        gameRefreshHandler();
+    };
+
+    handler.handlers[3] = function (packet) {
+        currentGame = {
+            id: packet.id,
+            name: packet.name,
+            host: packet.hoster
+        };
+        gameWindow();
+    };
+
+    handler.handlers[4] = function (packet) {
+        // LOGIN RESPONSE
+        if (packet.success) {
+            console.log("Connected ! " + packet.errorMessage);
+            findGameWindow();
+        } else {
+            alert("Connexion failed : " + packet.errorMessage);
+
+        }
+    };
+
+    appendToChat = function (packet) {
+        console.log("Chat " + packet.type + " : " + packet.sender + " > " + packet.message);
+    };
+
+    handler.handlers[5] = function (packet) {
+        // SEND MESSAGE
+        if (packet.type === "ERROR")
+            alert("Erreur : " + packet.message)
+        else
+            appendToChat(packet);
+    };
+
+    refreshGameState = function() {};
+    refreshPlayers = function() {};
+    refreshRoles = function() {};
+
+    handler.handlers[6] = function (packet) {
+        currentGame.phase = packet.phase;
+        refreshGameState();
+    };
+
+    handler.handlers[7] = function (packet) {
+        currentGame.role = packet.role;
+        refreshGameState();
+    };
+
+    handler.handlers[8] = function (packet) {
+        currentGame.state = packet.state;
+        refreshGameState();
+    };
+
+    handler.handlers[9] = function (packet) {
+        currentGame.maxPlayers = packet.maxPlayers;
+        currentGame.players = packet.players;
+        refreshPlayers();
+    };
+
+    handler.handlers[0x0A] = function (packet) {
+        // VOTE END
+    };
+
+    handler.handlers[0x0B] = function (packet) {
+        // VOTE START
+    };
+
+    handler.handlers[0x0C] = function (packet) {
+        // VOTE VALUE
+    };
+
+    handler.handlers[0x0D] = function (packet) {
+        currentGame.composition = packet.roles;
+        refreshRoles();
+    };
+
+    function connect() {
+        var name = $("#nickname").val();
+        var ip = $("#ip").val();
+        var port = $("#port").val();
+
+        doConnect(name, ip, port);
+    }
+
+    function findGameWindow() {
+        currentGame = null;
+        $("body").load("findGame.html");
+    }
+
+    function gameWindow() {
+        $("body").load("game.html");
+    }
+
+    function connectWindow() {
+        $("body").load("connect.html")
+    }
+
+    $(document).ready(function() {
+        connectWindow();
+    });
+</script>
+
+<body>
+</body>
+</html>
