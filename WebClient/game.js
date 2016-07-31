@@ -2,6 +2,10 @@ var handler = {};
 var games = {};
 var currentGame = null;
 
+var queryDict = {};
+location.search.substr(1).split("&").forEach(function(item) {queryDict[item.split("=")[0]] = item.split("=")[1]});
+console.log(queryDict);
+
 handler.socket = null;
 handler.sendPacket = function (packet) {
     this.socket.send(JSON.stringify(packet))
@@ -24,8 +28,15 @@ handler.handlers[1] = function (packet) {
 handler.handlers[2] = function (packet) {
     games = {};
 
-    for (game in packet.games)
-        games[game.id] = packet.games[game];
+    for (var position in packet.games) {
+        var game = packet.games[position];
+        games[game.id] = game;
+    }
+
+    if ("game" in queryDict) {
+        console.log("Joining " + queryDict.game + " automatically.");
+        join(queryDict.game);
+    }
 
     gameRefreshHandler();
 };
@@ -36,6 +47,10 @@ handler.handlers[3] = function (packet) {
         name: packet.name,
         host: packet.hoster
     };
+
+    var currentState = history.state;
+    history.replaceState(currentState, "LoupGarou - Partie " + name, "/index.html?game=" + packet.id);
+
     gameWindow();
 };
 
@@ -233,7 +248,7 @@ refreshRoles = function () {
 };
 
 appendToChat = function(packet) {
-    var tag = "<span syle='"
+    var tag = "<span syle='";
 
     if (packet.red >= 0 && packet.green >= -1 && packet.blue >= -1)
         tag += "color: rgb(" + packet.red + ", " + packet.green + ", " + packet.blue + ");";
@@ -332,7 +347,7 @@ function join(gameId) {
         };
 
         if (game.hasPassword) {
-            packet.password = prompt("Mot de passe de la partie");
+            packet.password = sha256(prompt("Mot de passe de la partie"));
         }
 
         handler.sendPacket(packet);

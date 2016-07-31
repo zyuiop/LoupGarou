@@ -4,6 +4,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import net.zyuiop.loupgarou.protocol.Packet;
 import net.zyuiop.loupgarou.protocol.ProtocolMap;
 import net.zyuiop.loupgarou.protocol.packets.clientbound.GameListPacket;
@@ -51,6 +52,10 @@ public class ProtocolHandler extends ChannelInboundHandlerAdapter {
 				});
 	}
 
+	protected void loginRefuse(ChannelHandlerContext ctx, String reason) {
+		closeConnexion(ctx, new LoginResponsePacket(false, reason));
+	}
+
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		if (!(msg instanceof LoginPacket)) {
@@ -64,28 +69,28 @@ public class ProtocolHandler extends ChannelInboundHandlerAdapter {
 			if (client == null) {
 				LoginPacket loginPacket = (LoginPacket) msg;
 				if (loginPacket.getProtocolVersion() > ProtocolMap.protocolVersion) {
-					closeConnexion(ctx, new LoginResponsePacket(false, "Serveur obsolète ! \nUtilisez le protocole " + ProtocolMap.protocolVersion));
+					loginRefuse(ctx, "Serveur obsolète ! \nUtilisez le protocole " + ProtocolMap.protocolVersion);
 					return;
 				} else if (loginPacket.getProtocolVersion() < ProtocolMap.protocolVersion) {
-					closeConnexion(ctx, new LoginResponsePacket(false, "Client obsolète ! \nUtilisez le protocole " + ProtocolMap.protocolVersion));
+					loginRefuse(ctx, "Client obsolète ! \nUtilisez le protocole " + ProtocolMap.protocolVersion);
 					return;
 				}
 
 				String username = loginPacket.getUsername();
 				if (!namePattern.matcher(username).find()) {
-					closeConnexion(ctx, new LoginResponsePacket(false, "Nom d'utilisateur invalide : \nde 3 à 20 caractères alphanumériques.."));
+					loginRefuse(ctx, "Nom d'utilisateur invalide : \nde 3 à 20 caractères alphanumériques..");
 					return;
 				}
 
 				if (ConnectedClient.getClient(loginPacket.getUsername()) != null) {
-					closeConnexion(ctx, new LoginResponsePacket(false, "Ce nom d'utilisateur est déjà utilisé."));
+					loginRefuse(ctx, "Ce nom d'utilisateur est déjà utilisé.");
 					return;
 				}
 
 				AuthenticationService service = LGServer.getInstance().getAuthenticationService();
 				String storedPubKey = service.getStoredPublicKey(username);
 				if (storedPubKey != null && !loginPacket.isEnforceAuth()) {
-					closeConnexion(ctx, new LoginResponsePacket(false, "Compte protégé par vérification RSA."));
+					loginRefuse(ctx, "Compte protégé par vérification RSA.");
 					return;
 				} else if (loginPacket.isEnforceAuth()) {
 					if (storedPubKey != null) {
@@ -93,18 +98,18 @@ public class ProtocolHandler extends ChannelInboundHandlerAdapter {
 						if (loginPacket.getPublicKey().equals(storedPubKey)) {
 							boolean valid = service.isSignatureValid(username, storedPubKey, loginPacket.getTimestamp(), loginPacket.getSignature());
 							if (!valid) {
-								closeConnexion(ctx, new LoginResponsePacket(false, "Signature invalide."));
+								loginRefuse(ctx, "Signature invalide.");
 								return;
 							}
 						} else {
-							closeConnexion(ctx, new LoginResponsePacket(false, "Clé publique invalide."));
+							loginRefuse(ctx, "Clé publique invalide.");
 							return;
 						}
 					} else {
 						// On a pas encore de clé, on la crée
 						boolean valid = service.isSignatureValid(username, loginPacket.getPublicKey(), loginPacket.getTimestamp(), loginPacket.getSignature());
 						if (!valid) {
-							closeConnexion(ctx, new LoginResponsePacket(false, "Signature invalide."));
+							loginRefuse(ctx, "Signature invalide.");
 							return;
 						} else {
 							LGServer.getLogger().info("Saving public key for user " + username + " o/");

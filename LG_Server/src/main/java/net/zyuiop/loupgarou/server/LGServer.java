@@ -15,6 +15,7 @@ import net.zyuiop.loupgarou.server.auth.AuthenticationService;
 import net.zyuiop.loupgarou.server.auth.RSAAuthenticationService;
 import net.zyuiop.loupgarou.server.game.GamesManager;
 import net.zyuiop.loupgarou.server.network.JsonCodec;
+import net.zyuiop.loupgarou.server.network.JsonProtocolHandler;
 import net.zyuiop.loupgarou.server.network.ProtocolHandler;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -110,7 +111,7 @@ public class LGServer {
 						// pipeline.addLast(new WebSocketServerCompressionHandler());
 						pipeline.addLast(new WebSocketServerProtocolHandler("/game"));
 						pipeline.addLast(new JsonCodec());
-						pipeline.addLast(new ProtocolHandler());
+						pipeline.addLast(new JsonProtocolHandler());
 					}
 				})
 				.option(ChannelOption.SO_BACKLOG, 128)          // (5)
