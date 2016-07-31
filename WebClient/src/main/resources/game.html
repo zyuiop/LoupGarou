@@ -1,59 +1,169 @@
-<div class="container">
-    <div class="row">
+<div class="container" id="game-window">
+    <div class="row" style="height: 100%;">
         <div class="col-md-3">
-            <div id="game-state">
-                <h3>Êtat du jeu</h3>
-                <ul>
-                    <li id="game-state-name">Nom : </li>
-                    <li id="game-state-host">Host : </li>
-                    <li id="game-state-state">Êtat : </li>
-                    <li id="game-state-role" hidden>Personnage : </li>
-                    <li id="game-state-turn" hidden>Tour : </li>
-                </ul>
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Êtat du jeu</h3>
+                </div>
+                <div class="panel-body" id="game-state">
+                    <ul>
+                        <li id="game-state-name">Nom : </li>
+                        <li id="game-state-host">Host : </li>
+                        <li id="game-state-state">Êtat : </li>
+                        <li id="game-state-role" hidden>Personnage : </li>
+                        <li id="game-state-turn" hidden>Tour : </li>
+                    </ul>
+                </div>
             </div>
-
-            <div id="composition">
-
+            <div class="panel panel-primary" id="composition-frame" hidden>
+                <div class="panel-heading">
+                    <h3 class="panel-title">Composition de la partie</h3>
+                </div>
+                <div class="panel-body" id="composition">
+                </div>
             </div>
-
-            <div id="actions">
-
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Actions</h3>
+                </div>
+                <div class="panel-body">
+                    <button style="width: 100%;" class="btn btn-danger" id="btn-quit" data-loading-text="Déconnexion...">Quitter la partie</button>
+                </div>
             </div>
-
-            <div id="vote">
+            <div id="votes">
 
             </div>
         </div>
-        <div class="col-md-6">
-            <div id="chat-content">
+        <div class="col-md-6" style="height: 100%;">
+            <div class="panel panel-primary" style="height: 100%;">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Chat</h3>
+                </div>
+                <div class="panel-body" style="height: 100%;">
+                    <div id="chat-content" style="height: 90%; overflow: scroll;">
 
-            </div>
-            <div id="chat-sender" style="margin-bottom: 0px">
-                <form class="form-inline">
-                    <div class="form-group">
-                        <label class="sr-only" for="messageField">Message</label>
-                        <input type="text" class="form-control" id="messageField" placeholder="Message">
                     </div>
-                    <button type="submit" class="btn btn-default">Envoyer</button>
-                </form>
+                    <div id="chat-sender" style="margin-bottom: 0px">
+                        <form class="form-inline" id="form-chat" style="width: 100%;">
+                            <div class="form-group col-md-10">
+                                <label class="sr-only" for="messageField">Message</label>
+                                <input type="text" class="form-control" style="width: 100%;" id="messageField" placeholder="Message">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Envoyer</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div id="role">
-
+            <div class="panel panel-primary" id="role-frame" hidden>
+                <div class="panel-heading">
+                    <h3 class="panel-title">Votre carte</h3>
+                </div>
+                <div class="panel-body" id="role">
+                </div>
             </div>
-
-            <div id="players">
-
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Joueurs en jeu</h3>
+                </div>
+                <div class="panel-body" id="players">
+                </div>
             </div>
-
-            <div id="player-votes">
+            <div id="votes-values">
 
             </div>
         </div>
     </div>
 </div>
 <script>
+    resetWindow = function () {
+        $("#game-state-role").hide();
+        $("#game-state-turn").hide();
+        $("#role-frame").hide();
+        $("#players").html("");
+        $("#composition-frame").hide();
+        $("#chat-content").html("");
+        $("#messageField").val("");
+
+        $("#votes").html("");
+        $("#votes-values").html("");
+    };
+
+    generateVote = function(packet) {
+        var voteId = packet.voteId;
+        var form = "<form id='vote-form-'" + voteId + "'><input type='hidden' name='voteid' value='" + voteId + "' />";
+        form += "<div class='form-group'><select name='votevalue' id='vote-form-value-'" + voteId + "' class='form-control'>";
+
+        for (var choice of packet.availableChoices) {
+            form += "<option value='" + choice + "'>" + choice + "</option>";
+        }
+        form += "</select></div>";
+        form += "<button type='submit' class='btn btn-default' style='width: 100%;'>Voter</button>";
+
+        var voteBlock = "<div id='vote-" + voteId + "' class='panel panel-primary'>";
+        voteBlock += '<div class="panel-heading"> <h3 class="panel-title">' + packet.chooseReason + ' <small id="vote-' + voteId + '-time">' +
+                '(' + packet.chooseTime + ')</small></h3> </div>';
+        voteBlock += '<div class="panel-body">' + form + '</div></div>';
+
+        $("#votes").append(voteBlock);
+
+
+        var voteValuesBlock = '<div id="players-vote-' + voteId + '" class="panel panel-primary">';
+        voteValuesBlock += "<div class='panel-heading'><h3 class='panel-title'>" + packet.chooseReason + "</h3></div>";
+        voteValuesBlock += "<div class='panel-body'><p>Votes des joueurs :</p><ul>";
+
+        for (var voter of packet.voters) {
+            voteValuesBlock += "<li>" + voter + " : <span id='player-vote-" + voteId + "-" + voter + "'>Aucun vote</span></li>";
+        }
+
+        voteValuesBlock += "</ul></div></div>";
+
+        $("#votes-values").append(voteValuesBlock);
+
+
+        time = packet.chooseTime;
+        refresh = function() {
+            time --;
+            $("#vote-" + voteId + "-time").text("(" + time + ")");
+
+            if (time > 0) {
+                setTimeout(refresh, 1000);
+            }
+        };
+
+        setTimeout(refresh, 1000);
+
+        $("#vote-form-" + voteId).on("submit", function (e) {
+            e.preventDefault();
+            var value = $("#vote-form-value-" + voteId).val();
+
+            handler.sendPacket({
+                voteId: voteId,
+                vote: value,
+                packetId: 0xA3
+            })
+        })
+    };
+
+    handler.handlers[0x0A] = function (packet) {
+        console.log("Vote end " + packet.voteId);
+
+        var voteId = packet.voteId;
+        $("#vote-" + voteId).remove();
+        $("#players-vote-" + voteId).remove();
+    };
+
+    handler.handlers[0x0B] = function (packet) {
+        generateVote(packet);
+    };
+
+    handler.handlers[0x0C] = function (packet) {
+        console.log("Vote value : " + packet.voteId + " / " + packet.votingPlayer + " votes " + packet.vote);
+        // VOTE VALUE
+        $("#player-vote-" + packet.voteId + "-" + packet.votingPlayer).text(packet.vote);
+    };
+
     refreshGameState = function () {
         $("#game-state-name").text("Nom : " + currentGame.name);
         $("#game-state-host").text("Host : " + currentGame.host);
@@ -63,12 +173,15 @@
         }
 
         if (typeof currentGame.role !== "undefined") {
-            $("#game-state-state").text("Personnage : " + roles[currentGame.role].display);
+            $("#game-state-role").text("Personnage : " + roles[currentGame.role].display);
+            $("#game-state-role").show();
             $("#role").html("<img src='card-" + currentGame.role + ".jpg' />");
+            $("#role-frame").show();
         }
 
         if (typeof currentGame.turn !== "undefined") {
-            $("#game-state-state").text("Tour : " + gamePhase[currentGame.turn]);
+            $("#game-state-turn").text("Tour : " + gamePhase[currentGame.turn]);
+            $("#game-state-turn").show();
         }
     };
 
@@ -94,13 +207,18 @@
                 roleMap[role] = 1;
         }
 
-        var html = "<h3>Composition</h3>";
-        html += "<ul>";
-        for (var role in roleMap)
-            html += "<li>" + roles[role].display + (roleMap[role] > 1 ? " (" + roleMap[role] + ")" : "") + "</li>";
+        var html = "<ul>";
+        for (var role in roleMap) {
+            if (role in roles) {
+                html += "<li>" + roles[role].display + (roleMap[role] > 1 ? " (" + roleMap[role] + ")" : "") + "</li>";
+            } else {
+                console.log("Unknown role found : " + role);
+            }
+        }
 
         html += "</ul>";
         $("#composition").html(html);
+        $("#composition-frame").show();
     };
 
     appendToChat = function(packet) {
@@ -120,11 +238,36 @@
 
         tag += " " + packet.message;
         $("#chat-content").append("<p>" + tag + "</span></p>");
+
+        var chatContent = document.getElementById("chat-content");
+        chatContent.scrollTop = chatContent.scrollHeight;
     };
 
     $(document).ready(function () {
+        resetWindow();
         refreshGameState();
         refreshPlayers();
         refreshRoles();
+
+        $("#form-chat").on("submit", function(e) {
+            e.preventDefault();
+            var msg = $("#messageField").val().trim();
+            if (msg.length >= 0) {
+                handler.sendPacket({
+                    packetId: 0xA5,
+                    message: msg
+                });
+            }
+            $("#messageField").val("");
+        });
+
+        $("#btn-quit").on("click", function (e) {
+            handler.sendPacket({
+                packetId: 0xA2,
+                gameId: -1
+            });
+
+            $("#btn-quit").button("loading");
+        })
     });
 </script>

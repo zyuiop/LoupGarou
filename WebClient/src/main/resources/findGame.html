@@ -112,13 +112,18 @@
 
         var roles = $("#characters").val();
         var maxPl = villagers + wolves + roles.length;
-        if ($.inArray("THIEF", roles))
+        if ($.inArray("THIEF", roles) >= 0)
             maxPl -= 2;
 
-        console.log("Max Players : " + maxPl + ", composed of " + villagers + " villagers, " + wolves + " wolves and " + roles.length + " additional roles.")
+        console.log("Max Players : " + maxPl + ", composed of " + villagers + " villagers, " + wolves + " wolves and " + roles.length + " additional roles. Thief ? " + $.inArray("THIEF", roles))
 
         if (maxPl > 70) {
             alert("Il est impossible d'accepter plus de 70 joueurs dans une même partie.");
+            return;
+        }
+
+        if (maxPl < 2) {
+            alert("Il faut minimum deux joueurs dans une partie.");
             return;
         }
 
