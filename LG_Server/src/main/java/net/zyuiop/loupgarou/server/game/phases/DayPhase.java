@@ -37,6 +37,8 @@ public class DayPhase extends GamePhase {
 			game.setNextVictim(null);
 		}
 
+		game.getOtherVictims().clear();
+
 		autoComplete(() -> {
 			if (victims.size() == 0)
 				game.sendToAll(new MessagePacket(MessageType.GAME, "Le village se réveille, et personne n'est mort cette nuit !"));
