@@ -21,7 +21,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Properties;
 
 /**
  * @author zyuiop
@@ -31,13 +35,38 @@ public class LGServer {
 	private static final Logger logger = LogManager.getRootLogger();
 	private final int port;
 	private final int wsPort;
+	private final boolean wsEnable;
 	private AuthenticationService authenticationService;
 
 
 	LGServer() throws NoSuchAlgorithmException {
 		instance = this;
-		this.port = 2325;
-		this.wsPort = 8005;
+
+		int port = 2325;
+		int wsPort = 8005;
+		boolean wsEnable = true;
+
+		try {
+			Properties props = new Properties();
+			File file = new File("server.properties");
+			if (file.exists())
+				props.load(new FileReader(file));
+			else {
+				Properties def = new Properties();
+				def.load(getClass().getResourceAsStream("/server.properties"));
+				def.store(new FileWriter(file), "Saved automatically");
+			}
+
+			port = Integer.parseInt(props.getProperty("server_port", "2325"));
+			wsPort = Integer.parseInt(props.getProperty("websocket_port", "8005"));
+			wsEnable = Boolean.parseBoolean(props.getProperty("websocket_enable", "true"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		this.port = port;
+		this.wsPort = wsPort;
+		this.wsEnable = wsEnable;
 
 		// TODO read conf
 		logger.info("Starting LGServer on port " + port + " with protocol " + ProtocolMap.protocolVersion + "...");
@@ -95,19 +124,31 @@ public class LGServer {
 	private void run() throws InterruptedException {
 		EventLoopGroup bossGroup = new NioEventLoopGroup(); // (1)
 		EventLoopGroup workerGroup = new NioEventLoopGroup();
-		EventLoopGroup ws_bossGroup = new NioEventLoopGroup(); // (1)
-		EventLoopGroup ws_workerGroup = new NioEventLoopGroup();
+		EventLoopGroup ws_bossGroup = null;
+		EventLoopGroup ws_workerGroup = null;
+
+		if (wsEnable) {
+			ws_bossGroup = new NioEventLoopGroup();
+			ws_workerGroup = new NioEventLoopGroup();
+		}
+
 		try {
 			ChannelFuture main = setupMainServer(bossGroup, workerGroup);
-			ChannelFuture ws = setupWebSocket(ws_bossGroup, ws_workerGroup);
+			ChannelFuture ws = null;
+			if (wsEnable)
+				ws = setupWebSocket(ws_bossGroup, ws_workerGroup);
 
 			main.channel().closeFuture().sync();
-			ws.channel().closeFuture().sync();
+			if (wsEnable)
+				ws.channel().closeFuture().sync();
 		} finally {
 			workerGroup.shutdownGracefully();
 			bossGroup.shutdownGracefully();
-			ws_workerGroup.shutdownGracefully();
-			ws_bossGroup.shutdownGracefully();
+
+			if (wsEnable) {
+				ws_workerGroup.shutdownGracefully();
+				ws_bossGroup.shutdownGracefully();
+			}
 		}
 	}
 
