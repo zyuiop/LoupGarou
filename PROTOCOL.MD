@@ -140,7 +140,7 @@ Sent by the server when the player joins a game, whether because he requested it
 |--------|------|-------------
 | int    | id   | id of the joined game
 | string | name | name of the joined game
-| string | host | name of the player who hosts the game
+| string | hoster | name of the player who hosts the game
 
 ### 0x04 : Login response
 
@@ -149,7 +149,7 @@ Sent by the server as a response to 0x00
 | type    | name    | description
 |---------|---------|-------------
 | boolean | success | true if login succeeded, false an error occured (the connexion will be closed just after sending this packet)
-| string  | message | the error message or a welcome message if login succeeded
+| string  | errorMessage | the error message or a welcome message if login succeeded
 
 ### 0x05 : Message
 
@@ -225,7 +225,7 @@ Sent to all the voters when a player votes for a value
 
 | type   | name             | description
 |--------|------------------|-------------
-| int    | voteId           | the id of the vote
+| int    | id               | the id of the vote
 | string | votingPlayer     | the player who voted
 | string | vote             | the value of the player vote
 
@@ -236,6 +236,8 @@ Sent to a player when the game composition changes, and when the client joins a 
 | type   | name             | description
 |--------|------------------|-------------
 | Role[] | roles            | list of the available roles to play
+
+## Client -> Server
 
 ### 0x00 : Login
 
@@ -318,3 +320,8 @@ This packet is sent to change the composition of the game the client is in
 |----------|------------------|-------------
 | byte     | players          | the maximal amount of players
 | Role[]   | characters       | the different characters involved in this game
+
+## WebSocket Protocol
+
+WebSocket packets are Json encoded packets. The fields name correspond to the fields name given in this documentation. Each json packet MUST contain a packetId field, which value is the id of the packet.
+Beware : enumerations are sent as string, and not as integers.
