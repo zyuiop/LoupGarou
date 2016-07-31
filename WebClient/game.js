@@ -20,6 +20,7 @@ handler.disconnect = function () {
 };
 
 handler.handlers[1] = function (packet) {
+    queryDict = {};
     findGameWindow();
     alert("Partie quittée : " + packet.reason);
     $("#btn-quit").button("reset");
