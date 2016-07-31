@@ -326,7 +326,17 @@ public class Game {
 		this.mayor = mayor;
 	}
 
-	private Task electMayor() {
+	private Task electMayor(TaskChainer chainer) {
+		return new Task() {
+			@Override
+			public void run() {
+				chainer.justAfter(scheduleElectMayor());
+				complete();
+			}
+		};
+	}
+
+	private Task scheduleElectMayor() {
 		return new MajorityVote(60, "Votez pour un Capitaine", getPlayers(), getPlayerList()) {
 			@Override
 			public void run() {
@@ -369,7 +379,7 @@ public class Game {
 		TaskManager.runAsync(this::broadcastPlayerChange);
 
 		if (mayor == player) {
-			chainer.justAfter(electMayor());
+			chainer.justAfter(electMayor(chainer));
 		}
 
 		if (player.getRole() == Role.HUNTER && player.getClient() != null && player.getGame() == this) {
