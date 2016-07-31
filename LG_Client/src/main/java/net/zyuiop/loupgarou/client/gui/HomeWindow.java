@@ -141,14 +141,11 @@ public class HomeWindow extends Stage {
 
 			if (maxPl > 70) {
 				new Alert(Alert.AlertType.WARNING, "Il est impossible d'accepter plus de 70 joueurs dans une même partie.", new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE)).show();
-			}
-			/*else if (maxPl < 9) {
-				new Alert(Alert.AlertType.WARNING, "Il faut au moins 9 joueurs !", new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE)).show();
-			} else if (maxWolf * 3 > maxPl) {
-				new Alert(Alert.AlertType.WARNING, "Il y a trop de loups !", new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE)).show();
+			} else if (maxPl < 5) {
+				new Alert(Alert.AlertType.WARNING, "Il faut au moins 5 joueurs !", new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE)).show();
 			} else if (maxWolf < 1) {
 				new Alert(Alert.AlertType.WARNING, "Il faut au moins un loup !", new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE)).show();
-			} else if (roleSize + maxWolf > maxPl) {
+			} /* else if (roleSize + maxWolf > maxPl) {
 				new Alert(Alert.AlertType.WARNING, "Il y a plus de personnages et\nde loups que de joueurs !", new ButtonType("Ok", ButtonBar.ButtonData.OK_DONE)).show();
 			} else {*/
 			List<Role> r = new ArrayList<>();

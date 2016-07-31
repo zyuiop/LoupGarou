@@ -21,9 +21,29 @@ import java.util.regex.Pattern;
  * @author zyuiop
  */
 public class GamesManager {
-	private static       Pattern            namePattern = Pattern.compile("^[a-zA-Z0-9 _-]{5,25}$");
-	private static       int                nextGameId  = 1;
-	private static final Map<Integer, Game> games       = new HashMap<>();
+	private static Pattern namePattern = Pattern.compile("^[a-zA-Z0-9 _-]{5,25}$");
+	private static int nextGameId = 1;
+	private static final Map<Integer, Game> games = new HashMap<>();
+
+	private static boolean isGameValid(ConnectedClient client, Role[] characters, int players) {
+		if (!Arrays.asList(characters).contains(Role.WOLF)) {
+			client.sendPacket(new MessagePacket(MessageType.ERROR, "Partie invalide :\nIl est nécessaire d'avoir au moins un loup."));
+			return false;
+		}
+
+		if (players > 70) {
+			client.sendPacket(new MessagePacket(MessageType.ERROR, "Il est impossible d'accepter plus de 70 joueurs dans une même partie."));
+			return false;
+		} else if (players < 5) {
+			client.sendPacket(new MessagePacket(MessageType.ERROR, "Il faut au moins 5 joueurs !"));
+			return false;
+		} else if (players < 1) {
+			client.sendPacket(new MessagePacket(MessageType.ERROR, "Il faut au moins un loup !"));
+			return false;
+		}
+
+		return true;
+	}
 
 	public static void init() {
 		ProtocolHandler.handle(JoinGamePacket.class, (packet, client) -> {
@@ -48,27 +68,23 @@ public class GamesManager {
 		});
 
 		ProtocolHandler.handle(CreateGamePacket.class, ((packet, client) -> {
-			if (!Arrays.asList(packet.getCharacters()).contains(Role.WOLF)) {
-				client.sendPacket(new MessagePacket(MessageType.ERROR, "Partie invalide :\nIl est nécessaire d'avoir au moins un loup."));
+			if (!isGameValid(client, packet.getCharacters(), packet.getPlayers()))
 				return;
-			}
 
 			if (!namePattern.matcher(packet.getName()).find()) {
 				client.sendPacket(new MessagePacket(MessageType.ERROR, "Nom de partie invalide : \nde 5 à 25 caractères alphanumériques."));
 				return;
 			}
-			GameConfig config = new GameConfig(packet.getName(), client.getName(), packet.getPlayers(), packet.getPassword(), packet.getCharacters());
 
+			GameConfig config = new GameConfig(packet.getName(), client.getName(), packet.getPlayers(), packet.getPassword(), packet.getCharacters());
 
 			Game game = createGame(config);
 			game.handleJoin(client.getPlayer());
 		}));
 
 		ProtocolHandler.handle(ChangeGameCompositionPacket.class, ((packet, client) -> {
-			if (!Arrays.asList(packet.getCharacters()).contains(Role.WOLF)) {
-				client.sendPacket(new MessagePacket(MessageType.ERROR, "Partie invalide :\nIl est nécessaire d'avoir au moins un loup."));
+			if (!isGameValid(client, packet.getCharacters(), packet.getPlayers()))
 				return;
-			}
 
 			if (client.getPlayer().getGame() != null) {
 				Game game = client.getPlayer().getGame();

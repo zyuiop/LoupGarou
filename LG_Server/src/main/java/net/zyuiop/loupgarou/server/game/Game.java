@@ -212,7 +212,7 @@ public class Game {
 		PreparationPhase phase = (PreparationPhase) Phases.getPhase(GamePhase.PREPARATION);
 		phase.setRoles(available);
 		phase.setRunAfter(this::runPreNight);
-		phase.justAfter(electMayor());
+		phase.justAfter(electMayor(phase));
 		phase.run(this);
 	}
 
