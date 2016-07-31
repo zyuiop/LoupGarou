@@ -24,8 +24,8 @@ handler.handlers[1] = function (packet) {
 handler.handlers[2] = function (packet) {
     games = {};
 
-    for (game of packet.games)
-        games[game.id] = game;
+    for (game in packet.games)
+        games[game.id] = packet.games[game];
 
     gameRefreshHandler();
 };
@@ -121,7 +121,8 @@ generateVote = function(packet) {
     var form = "<form id='vote-form-" + voteId + "'><input type='hidden' name='voteid' value='" + voteId + "' />";
     form += "<div class='form-group'><select name='votevalue' id='vote-form-value-" + voteId + "' class='form-control'>";
 
-    for (var choice of packet.availableChoices) {
+    for (var choiceId in packet.availableChoices) {
+        var choice = packet.availableChoices[choiceId];
         form += "<option value='" + choice + "'>" + choice + "</option>";
     }
     form += "</select></div>";
@@ -139,7 +140,8 @@ generateVote = function(packet) {
     voteValuesBlock += "<div class='panel-heading'><h3 class='panel-title'>" + packet.chooseReason + "</h3></div>";
     voteValuesBlock += "<div class='panel-body'><p>Votes des joueurs :</p><ul>";
 
-    for (var voter of packet.voters) {
+    for (var voterId in packet.voters) {
+        var voter = packet.voters[voterId];
         voteValuesBlock += "<li>" + voter + " : <span id='player-vote-" + voteId + "-" + voter + "'>Aucun vote</span></li>";
     }
 
@@ -198,8 +200,8 @@ refreshPlayers = function () {
     var html = "<h3>Joueurs (" + currentGame.players.length + " / " + currentGame.maxPlayers + ")</h3>";
     html += "<ul>";
 
-    for (var player of currentGame.players)
-        html += "<li>" + player + "</li>";
+    for (var player in currentGame.players)
+        html += "<li>" + currentGame.players[player] + "</li>";
 
     html += "</ul>";
     $("#players").html(html);
@@ -348,7 +350,7 @@ function doConnect(name, ip, port) {
         handler.socket.close()
     }
 
-    handler.socket = new WebSocket("ws://localhost:8000/game");
+    handler.socket = new WebSocket("ws://" + ip + ":" + port + "/game");
     handler.socket.onopen = function () {
         if (handler.socket.readyState != WebSocket.OPEN) {
             alert("Une erreur s'est produite : la websocket est fermée.");
@@ -358,9 +360,10 @@ function doConnect(name, ip, port) {
         }
 
         handler.sendPacket({
-            name: name,
-            ip: ip,
-            port: port
+            packetId: 0,
+            protocolVersion: 7,
+            username: name,
+            enforceAuth: false
         });
     };
 
