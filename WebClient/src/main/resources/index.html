@@ -8,148 +8,191 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <script src="constants.js"></script>
+<script src="game.js"></script>
 <script src="sha256.js"></script>
-<script>
-    var handler = {};
-    var games = {};
-    var currentGame = null;
-
-    handler.socket = null;
-    handler.sendPacket = function (packet) {
-        this.socket.send(JSON.stringify(packet))
-    };
-    handler.handlers = {};
-
-    function doConnect(name, ip, port) {
-        if (handler.socket !== null) {
-            handler.socket.close()
-        }
-
-        handler.socket = new WebSocket("ws://localhost:8000/game");
-        handler.socket.onopen = function () {
-            handler.sendPacket({
-                name: name,
-                ip: ip,
-                port: port
-            });
-        };
-
-        handler.socket.onmessage = function (message) {
-            var msg = JSON.parse(message.data);
-            console.log(msg);
-            var packetId = msg.packetId;
-            var handleMethod = handler.handlers[packetId];
-            if (typeof handleMethod !== "undefined") {
-                handleMethod(msg);
-            } else
-                console.log("No handler for packet " + packetId + " :(")
-        };
-    }
-
-    handler.handlers[1] = function (packet) {
-        findGameWindow();
-        alert("Partie quitté : " + packet.reason);
-    };
-
-    var gameRefreshHandler = function () {};
-
-    handler.handlers[2] = function (packet) {
-        games = {};
-
-        for (game of packet.games)
-            games[game.id] = game;
-
-        gameRefreshHandler();
-    };
-
-    handler.handlers[3] = function (packet) {
-        currentGame = {
-            id: packet.id,
-            name: packet.name,
-            host: packet.hoster
-        };
-        gameWindow();
-    };
-
-    handler.handlers[4] = function (packet) {
-        // LOGIN RESPONSE
-        if (packet.success) {
-            console.log("Connected ! " + packet.errorMessage);
-            findGameWindow();
-        } else {
-            alert("Connexion failed : " + packet.errorMessage);
-
-        }
-    };
-
-    appendToChat = function (packet) {
-        console.log("Chat " + packet.type + " : " + packet.sender + " > " + packet.message);
-    };
-
-    handler.handlers[5] = function (packet) {
-        // SEND MESSAGE
-        if (packet.type === "ERROR")
-            alert("Erreur : " + packet.message)
-        else
-            appendToChat(packet);
-    };
-
-    refreshGameState = function() {};
-    refreshPlayers = function() {};
-    refreshRoles = function() {};
-
-    handler.handlers[6] = function (packet) {
-        currentGame.phase = packet.phase;
-        refreshGameState();
-    };
-
-    handler.handlers[7] = function (packet) {
-        currentGame.role = packet.role;
-        refreshGameState();
-    };
-
-    handler.handlers[8] = function (packet) {
-        currentGame.state = packet.state;
-        refreshGameState();
-    };
-
-    handler.handlers[9] = function (packet) {
-        currentGame.maxPlayers = packet.maxPlayers;
-        currentGame.players = packet.players;
-        refreshPlayers();
-    };
-
-    handler.handlers[0x0D] = function (packet) {
-        currentGame.composition = packet.roles;
-        refreshRoles();
-    };
-
-    function connect() {
-        var name = $("#nickname").val();
-        var ip = $("#ip").val();
-        var port = $("#port").val();
-
-        doConnect(name, ip, port);
-    }
-
-    function findGameWindow() {
-        currentGame = null;
-        $("body").load("findGame.html");
-    }
-
-    function gameWindow() {
-        $("body").load("game.html");
-    }
-
-    function connectWindow() {
-        $("body").load("connect.html")
-    }
-
-    $(document).ready(function() {
-        connectWindow();
-    });
-</script>
 
 <body>
+<div class="container" id="game-window" hidden>
+    <div class="row" style="height: 100%;">
+        <div class="col-md-3">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Êtat du jeu</h3>
+                </div>
+                <div class="panel-body" id="game-state">
+                    <ul>
+                        <li id="game-state-name">Nom : </li>
+                        <li id="game-state-host">Host : </li>
+                        <li id="game-state-state">Êtat : </li>
+                        <li id="game-state-role" hidden>Personnage : </li>
+                        <li id="game-state-turn" hidden>Tour : </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="panel panel-primary" id="composition-frame" hidden>
+                <div class="panel-heading">
+                    <h3 class="panel-title">Composition de la partie</h3>
+                </div>
+                <div class="panel-body" id="composition">
+                </div>
+            </div>
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Actions</h3>
+                </div>
+                <div class="panel-body">
+                    <button style="width: 100%;" class="btn btn-danger" id="btn-quit" data-loading-text="Déconnexion...">Quitter la partie</button>
+                </div>
+            </div>
+            <div id="votes">
+
+            </div>
+        </div>
+        <div class="col-md-6" style="height: 100%;">
+            <div class="panel panel-primary" style="height: 100%;">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Chat</h3>
+                </div>
+                <div class="panel-body" style="height: 100%;">
+                    <div id="chat-content" style="height: 90%; overflow: scroll;">
+
+                    </div>
+                    <div id="chat-sender" style="margin-bottom: 0px">
+                        <form class="form-inline" id="form-chat" style="width: 100%;">
+                            <div class="form-group col-md-10">
+                                <label class="sr-only" for="messageField">Message</label>
+                                <input type="text" class="form-control" style="width: 100%;" id="messageField" placeholder="Message">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Envoyer</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="panel panel-primary" id="role-frame" hidden>
+                <div class="panel-heading">
+                    <h3 class="panel-title">Votre carte</h3>
+                </div>
+                <div class="panel-body" id="role">
+                </div>
+            </div>
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Joueurs en jeu</h3>
+                </div>
+                <div class="panel-body" id="players">
+                </div>
+            </div>
+            <div id="votes-values">
+
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container" id="findgame-window" hidden>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Créer une partie</h3>
+                </div>
+                <div class="panel-body">
+                    <form id="creation-form" class="form-horizontal">
+                        <div class="form-group">
+                            <label for="gameName" class="col-sm-2 control-label">Nom</label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" id="gameName" placeholder="Nom de partie">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="password" class="col-sm-2 control-label">Mot de passe</label>
+                            <div class="col-sm-10">
+                                <input type="password" class="form-control" id="password"
+                                       placeholder="Mot de passe de la salle (facultatif)">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="villagers" class="col-sm-2 control-label">Villageois</label>
+                            <div class="col-sm-10">
+                                <input type="number" class="form-control" id="villagers"
+                                       placeholder="Nombre de villageois">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="wolves" class="col-sm-2 control-label">Loup Garous</label>
+                            <div class="col-sm-10">
+                                <input type="number" class="form-control" id="wolves" placeholder="Nombre de loups">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="characters" class="col-sm-2 control-label">Nom</label>
+                            <div class="col-sm-10">
+                                <select id="characters" class="form-control" multiple style="width: 100%;">
+                                    <option value="MEDIUM">Voyante</option>
+                                    <option value="HUNTER">Chasseur</option>
+                                    <option value="CUPIDON">Cupidon</option>
+                                    <option value="WITCH">Sorcière</option>
+                                    <option value="LITTLE_GIRL">Petite fille</option>
+                                    <option value="THIEF">Voleur</option>
+                                    <option value="SAVER">Salvateur</option>
+                                    <option value="WHITE_WOLF">Loup Garou Blanc</option>
+                                    <option value="ANCIENT">Ancien</option>
+                                    <option value="ANGEL">Ange</option>
+                                    <option value="IDIOT">Idiot du vilage</option>
+                                    <option value="GREAT_BAD_WOLF">Grand méchant loup</option>
+                                    <option value="SAVAGE_KID">Enfant Sauvage</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <button type="submit" class="btn btn-default" style="width: 100%;">Créer la partie
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Rejoindre une partie</h3>
+                </div>
+                <div class="panel-body">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Host</th>
+                            <th>Joueurs</th>
+                            <th>Êtat</th>
+                        </tr>
+                        </thead>
+
+                        <tbody id="table-content">
+                        <tr>
+                            <td colspan="4">Aucun contenu pour le moment.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <button class="btn btn-primary" style="width: 100%" id="refresh-btn">Rafraichir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container" id="connect-window"><p>Choisissez un pseudo et un serveur pour vous connecter à Loup Garou !</p>
+    <form id="connectForm">
+        <input type="text" id="nickname" placeholder="Pseudo"/>
+        <input type="text" id="ip" placeholder="IP"/>
+        <input type="number" id="port" value="2325"/>
+        <input type="submit"/>
+    </form>
+</div>
+
 </body>
 </html>
