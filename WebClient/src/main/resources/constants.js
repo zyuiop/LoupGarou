@@ -30,3 +30,20 @@ gamePhase = {
     "NIGHT" : "Nuit",			// Loups Garous
     "END_NIGHT" : "Fin de la nuit"	// Loups Blancs, Sorcière, Corbeau...
 };
+
+closeError = {
+    1001 : "Endpoint disparu",
+    1002 : "Erreur de protocole",
+    1003 : "Données non supportées",
+    1005 : "Aucune information supplémentaire",
+    1006 : "Connexion fermée de manière innatendue",
+    1007 : "Données non supportées",
+    1008 : "Violation de politique",
+    1009 : "Données trop larges",
+    1010 : "Extension manquante",
+    1011 : "Erreur interne du serveur",
+    1012 : "Redémarrage du serveur",
+    1013 : "Réessayez plus tard",
+    4000 : "Erreur de connexion au serveur",
+    4001 : "Timeout"
+};

@@ -8,6 +8,13 @@ handler.sendPacket = function (packet) {
 };
 handler.handlers = {};
 
+handler.disconnect = function () {
+    handler.socket.close(1000);
+
+    connectWindow();
+    $("#connect-errors").html('<div class="alert alert-success" role="alert">La connexion au serveur a bien été terminée.</div>');
+};
+
 handler.handlers[1] = function (packet) {
     findGameWindow();
     alert("Partie quittée : " + packet.reason);
@@ -275,8 +282,13 @@ $(document).ready(function () {
         doRefresh();
     });
 
+    $("#disconnect-btn").on('click', function (e) {
+        handler.disconnect();
+    });
+
     $('#connectForm').on('submit', function (e) {
         e.preventDefault();
+        $("#connect-button").button("loading");
         connect();
     });
 
@@ -338,6 +350,13 @@ function doConnect(name, ip, port) {
 
     handler.socket = new WebSocket("ws://localhost:8000/game");
     handler.socket.onopen = function () {
+        if (handler.socket.readyState != WebSocket.OPEN) {
+            alert("Une erreur s'est produite : la websocket est fermée.");
+            connectWindow();
+            handler.socket.close();
+            return;
+        }
+
         handler.sendPacket({
             name: name,
             ip: ip,
@@ -346,6 +365,11 @@ function doConnect(name, ip, port) {
     };
 
     handler.socket.onmessage = function (message) {
+        if (message.data === "PING") {
+            handler.socket.send("PONG");
+            return;
+        }
+
         var msg = JSON.parse(message.data);
         console.log(msg);
         var packetId = msg.packetId;
@@ -355,6 +379,31 @@ function doConnect(name, ip, port) {
         } else
             console.log("No handler for packet " + packetId + " :(")
     };
+
+    handler.socket.onerror = function (error) {
+        console.log(error);
+    };
+
+    handler.socket.onclose = function (event) {
+        console.log(event);
+        var code = event.code;
+        if (code != 1000) {
+            var msg = "Erreur inconnue";
+            if (code in closeError)
+                msg = closeError[code];
+
+            if (event.reason != null && event.reason.length > 0)
+                msg += " : " + event.reason;
+
+            var alertMsg = "<b>Erreur de connexion : </b> " + msg + " (code d'erreur : " + code + ")";
+
+            $("#connect-errors").html('<div class="alert alert-danger" role="alert">' + alertMsg + '</div>');
+        } else {
+            $("#connect-errors").html('<div class="alert alert-success" role="alert">La connexion au serveur a bien été terminée.</div>');
+        }
+
+        connectWindow();
+    }
 }
 
 /**
@@ -454,6 +503,8 @@ function gameWindow() {
 }
 
 function connectWindow() {
+    $("#connect-button").button("reset");
+
     $("#connect-window").show();
     $("#findgame-window").hide();
     $("#game-window").hide();

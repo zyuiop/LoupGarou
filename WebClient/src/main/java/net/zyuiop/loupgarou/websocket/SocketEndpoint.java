@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
+import javax.websocket.CloseReason;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
@@ -32,7 +33,8 @@ public class SocketEndpoint {
 	}
 
 	@OnClose
-	public void close(Session session) {
+	public void close(CloseReason reason, Session session) {
+		SocketServer.logger.info("Session closed : " + session.getId() + " / " + reason.getCloseCode().getCode() + " / " + reason.getReasonPhrase());
 		NetworkManager manager = registeredSessions.remove(session.getId());
 		if (manager != null)
 			manager.stop();
@@ -50,6 +52,11 @@ public class SocketEndpoint {
 				e.printStackTrace();
 			}
 		} else {
+			if (message.equalsIgnoreCase("pong")) {
+				registeredSessions.get(session.getId()).receivePong();
+				return;
+			}
+
 			Packet packet = GsonManager.getGson().fromJson(message, Packet.class);
 			registeredSessions.get(session.getId()).send(packet);
 		}

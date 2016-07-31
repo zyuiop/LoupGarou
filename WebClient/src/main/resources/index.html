@@ -178,19 +178,22 @@
                         </tr>
                         </tbody>
                     </table>
-                    <button class="btn btn-primary" style="width: 100%" id="refresh-btn">Rafraichir</button>
+                    <button class="btn btn-primary col-md-6" id="refresh-btn"><b class="glyphicon glyphicon-refresh"></b> Rafraichir</button>
+                    <button class="btn btn-danger col-md-6" id="disconnect-btn"><b class="glyphicon glyphicon-remove"></b> Se déconnecter</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="container" id="connect-window"><p>Choisissez un pseudo et un serveur pour vous connecter à Loup Garou !</p>
+<div class="container" id="connect-window">
+    <div id="connect-errors"></div>
+    <p>Choisissez un pseudo et un serveur pour vous connecter à Loup Garou !</p>
     <form id="connectForm">
         <input type="text" id="nickname" placeholder="Pseudo"/>
         <input type="text" id="ip" placeholder="IP"/>
         <input type="number" id="port" value="2325"/>
-        <input type="submit"/>
+        <button type="submit" id="connect-button" data-loading-text="Connexion..." class="btn btn-primary">Se connecter</button>
     </form>
 </div>
 
