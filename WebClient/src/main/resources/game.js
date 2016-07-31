@@ -10,7 +10,8 @@ handler.handlers = {};
 
 handler.handlers[1] = function (packet) {
     findGameWindow();
-    alert("Partie quitté : " + packet.reason);
+    alert("Partie quittée : " + packet.reason);
+    $("#btn-quit").button("reset");
 };
 
 handler.handlers[2] = function (packet) {
@@ -38,7 +39,6 @@ handler.handlers[4] = function (packet) {
         findGameWindow();
     } else {
         alert("Connexion failed : " + packet.errorMessage);
-
     }
 };
 
@@ -85,9 +85,9 @@ handler.handlers[0x0B] = function (packet) {
 };
 
 handler.handlers[0x0C] = function (packet) {
-    console.log("Vote value : " + packet.voteId + " / " + packet.votingPlayer + " votes " + packet.vote);
+    console.log("Vote value : " + packet.id + " / " + packet.votingPlayer + " votes " + packet.vote);
     // VOTE VALUE
-    $("#player-vote-" + packet.voteId + "-" + packet.votingPlayer).text(packet.vote);
+    $("#player-vote-" + packet.id + "-" + packet.votingPlayer).text(packet.vote);
 };
 
 handler.handlers[0x0D] = function (packet) {
@@ -103,6 +103,7 @@ resetGameWindow = function () {
     $("#composition-frame").hide();
     $("#chat-content").html("");
     $("#messageField").val("");
+    $("#btn-quit").button("reset");
 
     $("#votes").html("");
     $("#votes-values").html("");
@@ -111,7 +112,7 @@ resetGameWindow = function () {
 generateVote = function(packet) {
     var voteId = packet.voteId;
     var form = "<form id='vote-form-" + voteId + "'><input type='hidden' name='voteid' value='" + voteId + "' />";
-    form += "<div class='form-group'><select name='votevalue' id='vote-form-value-'" + voteId + "' class='form-control'>";
+    form += "<div class='form-group'><select name='votevalue' id='vote-form-value-" + voteId + "' class='form-control'>";
 
     for (var choice of packet.availableChoices) {
         form += "<option value='" + choice + "'>" + choice + "</option>";
@@ -141,7 +142,7 @@ generateVote = function(packet) {
 
 
     time = packet.chooseTime;
-    refresh = function() {
+    var refresh = function() {
         time --;
         $("#vote-" + voteId + "-time").text("(" + time + ")");
 
@@ -155,6 +156,7 @@ generateVote = function(packet) {
     $("#vote-form-" + voteId).on("submit", function (e) {
         e.preventDefault();
         var value = $("#vote-form-value-" + voteId).val();
+        console.log("Send vote " + voteId + " : value=" + value);
 
         handler.sendPacket({
             voteId: voteId,
@@ -179,8 +181,8 @@ refreshGameState = function () {
         $("#role-frame").show();
     }
 
-    if (typeof currentGame.turn !== "undefined") {
-        $("#game-state-turn").text("Tour : " + gamePhase[currentGame.turn]);
+    if (typeof currentGame.phase !== "undefined") {
+        $("#game-state-turn").text("Tour : " + gamePhase[currentGame.phase]);
         $("#game-state-turn").show();
     }
 };
