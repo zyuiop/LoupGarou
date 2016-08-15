@@ -2,6 +2,8 @@ var handler = {};
 var games = {};
 var currentGame = null;
 
+var protocol = "wss";
+
 var queryDict = {};
 location.search.substr(1).split("&").forEach(function(item) {queryDict[item.split("=")[0]] = item.split("=")[1]});
 console.log(queryDict);
@@ -366,7 +368,7 @@ function doConnect(name, ip, port) {
         handler.socket.close()
     }
 
-    handler.socket = new WebSocket("ws://" + ip + ":" + port + "/game");
+    handler.socket = new WebSocket(protocol + "://" + ip + ":" + port + "/game");
     handler.socket.onopen = function () {
         if (handler.socket.readyState != WebSocket.OPEN) {
             alert("Une erreur s'est produite : la websocket est fermée.");
