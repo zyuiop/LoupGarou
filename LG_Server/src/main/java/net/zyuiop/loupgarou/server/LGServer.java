@@ -93,6 +93,7 @@ public class LGServer {
 
 			try {
 				sslContext = SslContextBuilder.forServer(cert, key).build();
+				logger.info("Accepting SSL connexions !");
 			} catch (SSLException e) {
 				e.printStackTrace();
 				return;
