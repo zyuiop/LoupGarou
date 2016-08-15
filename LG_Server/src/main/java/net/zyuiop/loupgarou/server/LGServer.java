@@ -8,6 +8,9 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
 import net.zyuiop.loupgarou.protocol.ProtocolMap;
 import net.zyuiop.loupgarou.protocol.network.PacketDecoder;
 import net.zyuiop.loupgarou.protocol.network.PacketEncoder;
@@ -17,10 +20,13 @@ import net.zyuiop.loupgarou.server.game.GamesManager;
 import net.zyuiop.loupgarou.server.network.JsonCodec;
 import net.zyuiop.loupgarou.server.network.JsonProtocolHandler;
 import net.zyuiop.loupgarou.server.network.ProtocolHandler;
+import org.apache.commons.lang3.Validate;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.appender.SyslogAppender;
 
+import javax.net.ssl.SSLException;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -38,7 +44,7 @@ public class LGServer {
 	private final int wsPort;
 	private final boolean wsEnable;
 	private AuthenticationService authenticationService;
-
+	private SslContext sslContext;
 
 	LGServer() throws NoSuchAlgorithmException {
 		instance = this;
@@ -46,6 +52,9 @@ public class LGServer {
 		int port = 2325;
 		int wsPort = 8005;
 		boolean wsEnable = true;
+		boolean wssEnable = false;
+		String wssCert = null;
+		String wssKey = null;
 
 		try {
 			Properties props = new Properties();
@@ -61,6 +70,9 @@ public class LGServer {
 			port = Integer.parseInt(props.getProperty("server_port", "2325"));
 			wsPort = Integer.parseInt(props.getProperty("websocket_port", "8005"));
 			wsEnable = Boolean.parseBoolean(props.getProperty("websocket_enable", "true"));
+			wssEnable = Boolean.parseBoolean(props.getProperty("wss_enable", "false"));
+			wssCert = props.getProperty("wss_cert", null);
+			wssKey = props.getProperty("wss_key", null);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -68,6 +80,26 @@ public class LGServer {
 		this.port = port;
 		this.wsPort = wsPort;
 		this.wsEnable = wsEnable;
+
+		if (wssEnable) {
+			Validate.notNull(wssCert, "The certificate path cannot be null (wss_cert)");
+			Validate.notNull(wssKey, "The private key path cannot be null (wss_key)");
+
+			File cert = new File(wssCert);
+			File key = new File(wssKey);
+
+			Validate.isTrue(cert.exists(), "The certificate must exist : " + cert.getAbsolutePath());
+			Validate.isTrue(key.exists(), "The private key must exist : " + cert.getAbsolutePath());
+
+			try {
+				sslContext = SslContextBuilder.forServer(cert, key).build();
+			} catch (SSLException e) {
+				e.printStackTrace();
+				return;
+			}
+		} else {
+			sslContext = null;
+		}
 
 		// TODO read conf
 		logger.info("Starting LGServer on port " + port + " with protocol " + ProtocolMap.protocolVersion + "...");
@@ -106,6 +138,9 @@ public class LGServer {
 					@Override
 					public void initChannel(SocketChannel ch) throws Exception {
 						ChannelPipeline pipeline = ch.pipeline();
+						if (sslContext != null)
+							pipeline.addLast(sslContext.newHandler(ch.alloc()));
+
 						pipeline.addLast(new HttpServerCodec());
 						pipeline.addLast(new HttpObjectAggregator(65536));
 						// pipeline.addLast(new WebSocketServerCompressionHandler());
