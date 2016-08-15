@@ -70,7 +70,7 @@ public class LGServer {
 			port = Integer.parseInt(props.getProperty("server_port", "2325"));
 			wsPort = Integer.parseInt(props.getProperty("websocket_port", "8005"));
 			wsEnable = Boolean.parseBoolean(props.getProperty("websocket_enable", "true"));
-			wssEnable = Boolean.parseBoolean(props.getProperty("wss_enable", "false"));
+			wssEnable = Boolean.parseBoolean(props.getProperty("wss_enabled", "false"));
 			wssCert = props.getProperty("wss_cert", null);
 			wssKey = props.getProperty("wss_key", null);
 		} catch (IOException e) {
