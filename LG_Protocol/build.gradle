@@ -1,0 +1,22 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'net.zyuiop'
+version = '7'
+
+description = """"""
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+
+
+repositories {
+     maven { url "http://repo.maven.apache.org/maven2" }
+}
+dependencies {
+    compile group: 'commons-io', name: 'commons-io', version:'2.4'
+    compile group: 'com.google.guava', name: 'guava', version:'19.0'
+    compile group: 'org.apache.commons', name: 'commons-lang3', version:'3.4'
+    compile group: 'io.netty', name: 'netty-all', version:'4.0.36.Final'
+}
