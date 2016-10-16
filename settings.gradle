@@ -1,1 +1,4 @@
 rootProject.name = 'lg-parent'
+include ':LG_Protocol'
+include ':LG_Client'
+include ':LG_Server'
