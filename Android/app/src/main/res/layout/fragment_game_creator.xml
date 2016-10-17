@@ -1,0 +1,81 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
+                android:paddingTop="@dimen/activity_vertical_margin"
+                android:paddingBottom="@dimen/activity_vertical_margin"
+                tools:context="net.zyuiop.loupgarou.GameChooser$CreatorFragment">
+
+    <EditText
+            android:id="@+id/game_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:hint="@string/game_name"
+    />
+
+    <EditText android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:id="@+id/game_password"
+              android:inputType="textPassword"
+              android:hint="@string/game_password"
+              android:layout_below="@id/game_name"
+    />
+
+    <EditText android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:id="@+id/game_villagers"
+              android:inputType="number"
+              android:hint="@string/game_villagers"
+              android:layout_below="@id/game_password"
+    />
+
+    <EditText android:layout_width="match_parent" android:layout_height="wrap_content"
+              android:id="@+id/game_wolves"
+              android:inputType="number"
+              android:hint="@string/game_wolves"
+              android:layout_below="@id/game_villagers"
+    />
+
+
+    <!-- layout.add(new Label("Mot de passe"), 0, 2);
+		layout.add(passwordField, 1, 2);
+		layout.add(new Label("Villageois"), 0, 3);
+		layout.add(villagers, 1, 3);
+		layout.add(new Label("Loup-Garous"), 0, 4);
+		layout.add(maxWolves, 1, 4);
+		layout.add(new Label("Personnages"), 0, 5);
+		layout.add(roles, 1, 5);
+		layout.add(create, 0, 6, 2, 1);
+
+    <Button
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/create_game_button"
+            android:onClick="create"
+            android:id="@+id/create"
+            android:layout_below="@id/game_name"
+    />
+		-->
+
+    <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/pick_roles_button"
+            android:onClick="pickRoles"
+            android:id="@+id/pick_roles"
+            android:layout_below="@id/game_wolves"
+    />
+
+    <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/create_game_button"
+            android:onClick="create"
+            android:id="@+id/create"
+            android:layout_below="@id/pick_roles"
+    />
+
+</RelativeLayout>

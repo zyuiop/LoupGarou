@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">LoupGarou</string>
+
+    <!-- Strings related to Main -->
+    <string name="enter_host">Hôte</string>
+    <string name="enter_port">Port</string>
+    <string name="enter_username">Nom d\'utilisateur</string>
+    <string name="connect">Connexion</string>
+    <string name="error_username_empty">Le nom d\'utilisateur ne peut pas être vide</string>
+    <string name="error_port_empty">Le port ne peut pas être vide</string>
+    <string name="error_host_empty">L\'hôte ne peut pas être vide</string>
+    <string name="connection_error">Erreur de connexion</string>
+    <string name="title_activity_game_chooser">GameChooser</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+    <string name="game_name">Nom de la partie</string>
+    <string name="create_game_button">Créer la partie</string>
+    <string name="game_password">Mot de passe de la partie</string>
+    <string name="game_villagers">Nombre de villageois</string>
+    <string name="game_wolves">Nombre de loups</string>
+    <string name="pick_roles_button">Rôles supplémentaires</string>
+
+</resources>
